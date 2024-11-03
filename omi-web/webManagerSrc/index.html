@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do one thing, do it well</title>
+</head>
+
+<body>
+    <h1>welcome use omi !</h1>
+    <div id="app">
+        <p>
+            request prefix: {{msg}}
+        </p>
+    </div>
+    <script type="module">
+        import { createApp } from "./vue.esm-browser.js"
+        import { omi_request_prefix } from "./omi.js"
+        createApp({
+            setup() {
+                return {
+                    msg: omi_request_prefix
+                }
+            }
+        }).mount("#app")
+    </script>
+</body>
+
+</html>
