@@ -1,0 +1,1 @@
+export const omi_request_prefix = "http://118.25.196.166:7788/omirequest";
