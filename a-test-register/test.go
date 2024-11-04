@@ -76,17 +76,17 @@ func main() {
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
-		register := client.NewRegister("redis", "1223213:6379")
+		register := client.NewRegister("redis-config-非常重要------------------------------------------------------", "1223213:6379")
 		register.StartOnBackup(map[string]string{"message": "redis"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
-		register := client.NewRegister("redis", "1223213:6378")
+		register := client.NewRegister("redis-config-非常重要------------------------------------------------------", "1223213:6378")
 		register.StartOnMain(map[string]string{"message": "redis"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
-		register := client.NewRegister("redis", "1223213:6377")
+		register := client.NewRegister("redis-config-非常重要------------------------------------------------------", "1223213:6377")
 		go func() {
 			time.Sleep(1 * time.Second)
 			register.Stop()

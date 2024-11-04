@@ -19,5 +19,5 @@ func main() {
 		Password: password,
 	})
 	omiweb := omiweb.NewClient(redisClient, "omi-namespace", "web-server", "118.25.196.166:7788")
-	omiweb.Start(embedSource)
+	omiweb.Live()
 }
