@@ -125,16 +125,6 @@ func (consumer *Consumer) start(handler func(message []byte)) {
 		}
 		select {
 		case msg := <-consumer.messageChan:
-			consumer.bufferLock.Lock()
-			if len(consumer.buffer) > 0 {
-				select {
-				case consumer.messageChan <- consumer.buffer[0]: // 非阻塞写入
-					// 发送成功后删除缓冲区中的消息
-					consumer.buffer = consumer.buffer[1:]
-				default:
-				}
-			}
-			consumer.bufferLock.Unlock()
 			handler(msg)
 		case <-consumer.Register.CloseSignal:
 			close = true
