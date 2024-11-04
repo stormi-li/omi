@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	omipc "github.com/stormi-li/omi/om-ipc"
+	omipc "github.com/stormi-li/omi/omi-ipc"
 )
 
 type Searcher struct {

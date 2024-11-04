@@ -43,7 +43,7 @@ func (node *Node) ToMain() {
 	node.register.ToMain()
 }
 
-func (node *Node) ToStandby() {
+func (node *Node) ToBackup() {
 	node.NodeType = node_standby
 	node.register.ToBackup()
 }

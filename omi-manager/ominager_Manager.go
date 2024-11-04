@@ -139,7 +139,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	if parts[0] == "ToStandby" {
 		node := getNode()
-		node.ToStandby()
+		node.ToBackup()
 		w.Write([]byte(node.ToString()))
 	}
 	if parts[0] == "Stop" {
