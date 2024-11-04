@@ -56,7 +56,11 @@ func (producer *Producer) Publish(message []byte) error {
 	binary.BigEndian.PutUint32(lengthBuf, messageLength)
 
 	for {
-		_, err = producer.conn.Write(append(lengthBuf, byteMessage...))
+		if producer.conn != nil {
+			_, err = producer.conn.Write(append(lengthBuf, byteMessage...))
+		} else {
+			err = fmt.Errorf("")
+		}
 		if err != nil {
 			err = producer.connect()
 			if err != nil {

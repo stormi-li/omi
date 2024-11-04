@@ -22,7 +22,7 @@ type Searcher struct {
 func (searcher *Searcher) SearchAllServers(serverName string) []string {
 	addrs := getKeysByNamespace(searcher.redisClient, searcher.namespace+serverName)
 	sort.Slice(addrs, func(a, b int) bool {
-		return addrs[a] < addrs[b]
+		return addrs[b] < addrs[a]
 	})
 	return addrs
 }

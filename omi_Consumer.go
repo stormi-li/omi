@@ -2,6 +2,7 @@ package omi
 
 import (
 	"encoding/binary"
+	"log"
 	"net"
 	"strings"
 	"sync"
@@ -118,6 +119,7 @@ func (consumer *Consumer) start(handler func(message []byte)) {
 	}
 	consumer.listener = listener
 	close := false
+	log.Println("omi consumer server: " + consumer.channel + " is running on " + consumer.address)
 	go consumer.startListen()
 	for {
 		if close && len(consumer.messageChan) == 0 {
