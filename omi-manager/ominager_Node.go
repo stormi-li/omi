@@ -1,4 +1,4 @@
-package manager
+package ominager
 
 import (
 	"encoding/json"

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/google/uuid"
 )
 
 type Lock struct {
@@ -13,21 +12,9 @@ type Lock struct {
 	lockName    string
 	stop        chan struct{}
 	redisClient *redis.Client
-	ripcClient  *Client
+	omipcClient *Client
 	namespace   string
 	ctx         context.Context
-}
-
-func newLock(redisClient *redis.Client, ripcClient *Client, lockName string, namespace string) *Lock {
-	return &Lock{
-		uuid:        uuid.NewString(),
-		lockName:    lockName,
-		stop:        make(chan struct{}, 1),
-		ripcClient:  ripcClient,
-		redisClient: redisClient,
-		namespace:   namespace,
-		ctx:         context.Background(),
-	}
 }
 
 func (l *Lock) Lock() {
@@ -54,7 +41,7 @@ func (l *Lock) Lock() {
 			break
 		} else {
 			//阻塞三秒，阻塞时可以被唤醒
-			l.ripcClient.Wait(l.lockName, const_lockBlockingTime)
+			l.omipcClient.Wait(l.lockName, const_lockBlockingTime)
 		}
 	}
 }
@@ -62,7 +49,7 @@ func (l *Lock) Lock() {
 func (l *Lock) Unlock() {
 	l.stop <- struct{}{}
 	l.deleteIfValueMatches()
-	l.ripcClient.Notify(l.lockName, "unlock")
+	l.omipcClient.Notify(l.lockName, "unlock")
 
 }
 

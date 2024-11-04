@@ -8,13 +8,6 @@ type Listener struct {
 	sub      *redis.PubSub
 }
 
-func newListener(sub *redis.PubSub) *Listener {
-	return &Listener{
-		shutdown: make(chan struct{}, 1),
-		sub:      sub,
-	}
-}
-
 // 关闭监听器
 func (listener Listener) Close() {
 	listener.shutdown <- struct{}{}

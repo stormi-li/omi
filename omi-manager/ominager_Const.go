@@ -1,4 +1,4 @@
-package manager
+package ominager
 
 const state_close = "close"
 const state_start = "start"

@@ -56,7 +56,7 @@ func (register *Register) start(nodeType string, data map[string]string) {
 			}
 		}
 	}()
-	log.Println("register server for", register.serverName+":"+register.address, "is starting")
+	log.Println("register server for", register.serverName+"["+register.address+"]", "is starting")
 	channel := register.serverName + const_separator + register.address
 	listener := register.omipcClient.NewListener(channel)
 	listener.Listen(func(msg string) {
