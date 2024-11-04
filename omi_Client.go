@@ -1,6 +1,9 @@
 package omi
 
 import (
+	"context"
+	"sync"
+
 	"github.com/go-redis/redis/v8"
 	omipc "github.com/stormi-li/omi/om-ipc"
 )
@@ -12,51 +15,59 @@ type Client struct {
 	serverType  ServerType
 }
 
-func NewClient(redisClient *redis.Client, namespace string, serverType ServerType) *Client {
-	prefix := ""
-	if serverType == Server {
-		prefix = const_serverPrefix
-	}
-	if serverType == MQ {
-		prefix = const_mqPrefix
-	}
-	if serverType == Config {
-		prefix = const_configPrefix
-	}
-	return &Client{
-		omipcClient: omipc.NewClient(redisClient, namespace),
-		redisClient: redisClient,
-		namespace:   namespace + const_separator + prefix,
-		serverType:  serverType,
-	}
-}
-
 func (c *Client) GetOmipc() *omipc.Client {
 	return c.omipcClient
 }
 
 func (c *Client) NewRegister(serverName string, address string) *Register {
-	return newRegister(c.redisClient, c.omipcClient, c.namespace, serverName, address)
+	return &Register{
+		redisClient: c.redisClient,
+		omipcClient: c.omipcClient,
+		namespace:   c.namespace,
+		serverName:  serverName,
+		ctx:         context.Background(),
+		address:     address,
+		channel:     serverName + const_separator + address,
+		CloseSignal: make(chan struct{}, 1),
+	}
 }
 
 func (c *Client) NewSearcher() *Searcher {
-	return newSearcher(c.redisClient, c.omipcClient, c.namespace)
+	return &Searcher{
+		redisClient: c.redisClient,
+		omipcClient: c.omipcClient,
+		namespace:   c.namespace,
+		ctx:         context.Background(),
+	}
 }
 
 func (c *Client) NewConsumer(channel string, address string) *Consumer {
 	if c.serverType != MQ {
 		panic("server type must be mq")
 	}
-	return newConsumer(c, channel, address)
+	return &Consumer{
+		omiClient:   c,
+		channel:     channel,
+		address:     address,
+		messageChan: make(chan []byte, 1000),
+		buffer:      [][]byte{},
+		bufferLock:  sync.Mutex{},
+		Register:    c.NewRegister(channel, address),
+	}
 }
 
 func (c *Client) NewProducer(channel string) *Producer {
 	if c.serverType != MQ {
 		panic("server type must be mq")
 	}
-	return newProducer(c, channel)
-}
-
-func NewManager(redisClient *redis.Client, namespace string) *Manager {
-	return newManager(redisClient, namespace)
+	producer := Producer{
+		omiClient:  c,
+		maxRetries: 10,
+		channel:    channel,
+	}
+	go producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
+		producer.address = addr
+		producer.connect()
+	})
+	return &producer
 }

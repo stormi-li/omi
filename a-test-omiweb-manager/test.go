@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	omiweb "github.com/stormi-li/omi/omi-web"
 )
 
 var redisAddr = "118.25.196.166:3934"
@@ -13,6 +13,6 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	manager := omi.NewManager(redisClient, "omi-namespace")
-	manager.Start("omi-manager", "118.25.196.166:7766")
+	omiweb := omiweb.NewClient(redisClient, "omi-namespace", "front_end_study", "118.25.196.166:8088")
+	omiweb.Live()
 }

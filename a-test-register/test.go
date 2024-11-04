@@ -20,7 +20,7 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Server)
 		register := client.NewRegister("user_server", "1223213:2222")
-		register.StartOnStandby(map[string]string{"message": "user_server"})
+		register.StartOnBackup(map[string]string{"message": "user_server"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Server)
@@ -39,7 +39,7 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Server)
 		register := client.NewRegister("order_server", "1223213:1111")
-		register.StartOnStandby(map[string]string{"message": "order_server"})
+		register.StartOnBackup(map[string]string{"message": "order_server"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Server)
@@ -58,7 +58,7 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
 		register := client.NewRegister("mysql", "1223213:3306")
-		register.StartOnStandby(map[string]string{"message": "mysql"})
+		register.StartOnBackup(map[string]string{"message": "mysql"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
@@ -77,7 +77,7 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
 		register := client.NewRegister("redis", "1223213:6379")
-		register.StartOnStandby(map[string]string{"message": "redis"})
+		register.StartOnBackup(map[string]string{"message": "redis"})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.Config)
@@ -96,14 +96,14 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-1", "118.25.196.166:8899")
-		consumer.StartOnStandby(func(message []byte) {
+		consumer.StartOnBackup(func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-1", "118.25.196.166:8890")
-		consumer.StartOnStandby(func(message []byte) {
+		consumer.StartOnBackup(func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
@@ -122,7 +122,7 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-2", "118.25.196.166:8888")
-		consumer.StartOnStandby(func(message []byte) {
+		consumer.StartOnBackup(func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()

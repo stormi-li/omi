@@ -1,4 +1,4 @@
-package omi
+package manager
 
 import (
 	"log"
@@ -6,63 +6,64 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/stormi-li/omi"
 )
 
 type Manager struct {
-	serverSearcher      *Searcher
-	mqSearcher          *Searcher
-	configSearcher      *Searcher
-	serverReseardClient *Client
-	mqReseardClient     *Client
-	configReseardClient *Client
-	nodeMap             map[string]Node
+	serverSearcher *omi.Searcher
+	mqSearcher     *omi.Searcher
+	configSearcher *omi.Searcher
+	serverClient   *omi.Client
+	mqClient       *omi.Client
+	configClient   *omi.Client
+	nodeMap        map[string]Node
 }
 
-func newManager(redisClient *redis.Client, namespace string) *Manager {
-	serverReseardClient := NewClient(redisClient, namespace, Server)
-	mqReseardClient := NewClient(redisClient, namespace, MQ)
-	configReseardClient := NewClient(redisClient, namespace, Config)
+func NewManager(redisClient *redis.Client, namespace string) *Manager {
+	serverClient := omi.NewClient(redisClient, namespace, omi.Server)
+	mqClient := omi.NewClient(redisClient, namespace, omi.MQ)
+	configClient := omi.NewClient(redisClient, namespace, omi.Config)
 	return &Manager{
-		serverReseardClient: serverReseardClient,
-		mqReseardClient:     mqReseardClient,
-		configReseardClient: configReseardClient,
-		serverSearcher:      serverReseardClient.NewSearcher(),
-		mqSearcher:          mqReseardClient.NewSearcher(),
-		configSearcher:      configReseardClient.NewSearcher(),
-		nodeMap:             map[string]Node{},
+		serverClient:   serverClient,
+		mqClient:       mqClient,
+		configClient:   configClient,
+		serverSearcher: serverClient.NewSearcher(),
+		mqSearcher:     mqClient.NewSearcher(),
+		configSearcher: configClient.NewSearcher(),
+		nodeMap:        map[string]Node{},
 	}
 }
 
 func (manager *Manager) GetServerNodes() []Node {
-	return manager.toNodeSlice(Server)
+	return manager.toNodeSlice(omi.Server)
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(MQ)
+	return manager.toNodeSlice(omi.MQ)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
-	return manager.toNodeSlice(Config)
+	return manager.toNodeSlice(omi.Config)
 }
-func (manager *Manager) toNodeSlice(serverType ServerType) []Node {
+func (manager *Manager) toNodeSlice(serverType omi.ServerType) []Node {
 	var keys []string
 	nodes := []Node{}
-	var client *Client
-	var searcher *Searcher
-	if serverType == Server {
-		client = manager.serverReseardClient
+	var client *omi.Client
+	var searcher *omi.Searcher
+	if serverType == omi.Server {
+		client = manager.serverClient
 		searcher = manager.serverSearcher
-		keys = manager.serverSearcher.allServers()
+		keys = manager.serverSearcher.AllServers()
 	}
-	if serverType == MQ {
-		client = manager.mqReseardClient
+	if serverType == omi.MQ {
+		client = manager.mqClient
 		searcher = manager.mqSearcher
-		keys = manager.mqSearcher.allServers()
+		keys = manager.mqSearcher.AllServers()
 	}
-	if serverType == Config {
-		client = manager.configReseardClient
+	if serverType == omi.Config {
+		client = manager.configClient
 		searcher = manager.configSearcher
-		keys = manager.configSearcher.allServers()
+		keys = manager.configSearcher.AllServers()
 	}
 	for _, val := range keys {
 		info := spliteNodeKey(val)
@@ -84,12 +85,21 @@ func spliteNodeKey(key string) []string {
 	return res
 }
 
-func (manager *Manager) handler(w http.ResponseWriter, r *http.Request) {
+func split(address string) []string {
+	index := strings.Index(address, const_separator)
+	if index == -1 {
+		return nil
+	}
+	return []string{address[:index], address[index+1:]}
+}
+
+func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	// 获取请求的路径并去掉开头的 '/'
 	path := strings.TrimPrefix(r.URL.Path, "/")
 
-	// 以 '/' 分割路径，获取第一个参数
+	// 以 '/' 分割路径
 	parts := strings.Split(path, "/")
+	parts = parts[1:]
 	if parts[0] == "GetMQNodes" {
 		w.Write([]byte(nodesToString(manager.GetMQNodes())))
 	}
@@ -99,7 +109,12 @@ func (manager *Manager) handler(w http.ResponseWriter, r *http.Request) {
 	if parts[0] == "GetConfigNodes" {
 		w.Write([]byte(nodesToString(manager.GetConfigNodes())))
 	}
-
+	if parts[0] == "GetAllNodes" {
+		nodes := manager.GetServerNodes()
+		nodes = append(nodes, manager.GetMQNodes()...)
+		nodes = append(nodes, manager.GetConfigNodes()...)
+		w.Write([]byte(nodesToString(nodes)))
+	}
 	getNode := func() *Node {
 		key := parts[1] + const_separator + parts[2]
 		node := manager.nodeMap[key]
@@ -145,9 +160,9 @@ func (manager *Manager) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (manager *Manager) Start(managerName, address string) {
-	register := manager.serverReseardClient.NewRegister(managerName, address)
+	register := manager.serverClient.NewRegister(managerName, address)
 	go register.StartOnMain(map[string]string{"message": "omi manager server"})
-	http.HandleFunc("/", manager.handler)
+	http.HandleFunc("/", manager.Handler)
 	log.Println("omi manager server: " + managerName + " is running on http://" + address)
 	go http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
 	<-register.CloseSignal

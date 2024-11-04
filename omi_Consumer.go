@@ -18,19 +18,6 @@ type Consumer struct {
 	Register    *Register
 }
 
-func newConsumer(omiClient *Client, channel string, address string) *Consumer {
-	consumer := Consumer{
-		omiClient:   omiClient,
-		channel:     channel,
-		address:     address,
-		messageChan: make(chan []byte, 1000),
-		buffer:      [][]byte{},
-		bufferLock:  sync.Mutex{},
-		Register:    omiClient.NewRegister(channel, address),
-	}
-	return &consumer
-}
-
 func (consumer *Consumer) SetCapacity(capacity int) {
 	consumer.messageChan = make(chan []byte, capacity)
 }
@@ -111,8 +98,8 @@ func (consumer *Consumer) StartOnMain(handler func(message []byte)) {
 	consumer.start(handler)
 }
 
-func (consumer *Consumer) StartOnStandby(handler func(message []byte)) {
-	go consumer.Register.StartOnStandby(map[string]string{"server type": "MQ"})
+func (consumer *Consumer) StartOnBackup(handler func(message []byte)) {
+	go consumer.Register.StartOnBackup(map[string]string{"server type": "MQ"})
 	consumer.start(handler)
 }
 
@@ -120,8 +107,8 @@ func (consumer *Consumer) ToMain() {
 	consumer.Register.ToMain()
 }
 
-func (consumer *Consumer) ToStandby() {
-	consumer.Register.ToStandby()
+func (consumer *Consumer) ToBackup() {
+	consumer.Register.ToBackup()
 }
 
 func (consumer *Consumer) start(handler func(message []byte)) {
@@ -130,8 +117,12 @@ func (consumer *Consumer) start(handler func(message []byte)) {
 		panic(err)
 	}
 	consumer.listener = listener
+	close := false
 	go consumer.startListen()
 	for {
+		if close && len(consumer.messageChan) == 0 {
+			return
+		}
 		select {
 		case msg := <-consumer.messageChan:
 			consumer.bufferLock.Lock()
@@ -146,7 +137,7 @@ func (consumer *Consumer) start(handler func(message []byte)) {
 			consumer.bufferLock.Unlock()
 			handler(msg)
 		case <-consumer.Register.CloseSignal:
-			return
+			close = true
 		}
 	}
 }

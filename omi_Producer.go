@@ -8,24 +8,11 @@ import (
 )
 
 type Producer struct {
-	omiClient *Client
-	channel       string
-	maxRetries    int
-	address       string
-	conn          net.Conn
-}
-
-func newProducer(omiClient *Client, channel string) *Producer {
-	producer := Producer{
-		omiClient: omiClient,
-		maxRetries:    10,
-		channel:       channel,
-	}
-	go producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
-		producer.address = addr
-		producer.connect()
-	})
-	return &producer
+	omiClient  *Client
+	channel    string
+	maxRetries int
+	address    string
+	conn       net.Conn
 }
 
 func (producer *Producer) connect() error {

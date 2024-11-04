@@ -3,7 +3,7 @@ package omi
 import (
 	"context"
 	"encoding/json"
-	"strings"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -12,7 +12,7 @@ import (
 
 type Register struct {
 	redisClient *redis.Client
-	ripcClient  *omipc.Client
+	omipcClient *omipc.Client
 	namespace   string
 	ctx         context.Context
 	serverName  string
@@ -22,25 +22,12 @@ type Register struct {
 	CloseSignal chan struct{}
 }
 
-func newRegister(redisClient *redis.Client, ripcClient *omipc.Client, namespace string, serverName string, address string) *Register {
-	return &Register{
-		redisClient: redisClient,
-		ripcClient:  ripcClient,
-		namespace:   namespace,
-		serverName:  serverName,
-		ctx:         context.Background(),
-		address:     address,
-		channel:     serverName + const_separator + address,
-		CloseSignal: make(chan struct{}, 1),
-	}
-}
-
 func (register *Register) StartOnMain(data map[string]string) {
 	register.start(node_main, data)
 }
 
-func (register *Register) StartOnStandby(data map[string]string) {
-	register.start(node_standby, data)
+func (register *Register) StartOnBackup(data map[string]string) {
+	register.start(node_backup, data)
 }
 
 func (register *Register) start(nodeType string, data map[string]string) {
@@ -69,9 +56,9 @@ func (register *Register) start(nodeType string, data map[string]string) {
 			}
 		}
 	}()
-
+	log.Println("register server for", register.serverName+":"+register.address, "is starting")
 	channel := register.serverName + const_separator + register.address
-	listener := register.ripcClient.NewListener(channel)
+	listener := register.omipcClient.NewListener(channel)
 	listener.Listen(func(msg string) {
 		if msg == command_close {
 			close <- struct{}{}
@@ -90,8 +77,8 @@ func (register *Register) start(nodeType string, data map[string]string) {
 			nodeType = node_main
 			update <- struct{}{}
 		}
-		if msg == command_standby {
-			nodeType = node_standby
+		if msg == command_backup {
+			nodeType = node_backup
 			update <- struct{}{}
 		}
 		if command, json := splitCommand(msg); command == command_updateNodeData {
@@ -102,34 +89,26 @@ func (register *Register) start(nodeType string, data map[string]string) {
 }
 
 func (register *Register) ToMain() {
-	register.ripcClient.Notify(register.channel, command_main)
+	register.omipcClient.Notify(register.channel, command_main)
 }
 
-func (register *Register) ToStandby() {
-	register.ripcClient.Notify(register.channel, command_standby)
+func (register *Register) ToBackup() {
+	register.omipcClient.Notify(register.channel, command_backup)
 }
 
 func (register *Register) Close() {
-	register.ripcClient.Notify(register.channel, command_close)
+	register.omipcClient.Notify(register.channel, command_close)
 }
 
 func (register *Register) Start() {
-	register.ripcClient.Notify(register.channel, command_start)
+	register.omipcClient.Notify(register.channel, command_start)
 }
 
 func (register *Register) Stop() {
-	register.ripcClient.Notify(register.channel, command_stop)
+	register.omipcClient.Notify(register.channel, command_stop)
 }
 
 func (register *Register) UpdateData(data map[string]string) {
 	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
-	register.ripcClient.Notify(register.channel, command_updateNodeData+":"+string(jsonStr))
-}
-
-func splitCommand(address string) (string, string) {
-	index := strings.Index(address, const_separator)
-	if index == -1 {
-		return "", ""
-	}
-	return address[:index], address[index+1:]
+	register.omipcClient.Notify(register.channel, command_updateNodeData+":"+string(jsonStr))
 }

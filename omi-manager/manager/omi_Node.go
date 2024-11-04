@@ -1,20 +1,24 @@
-package omi
+package manager
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/stormi-li/omi"
+)
 
 type Node struct {
-	ServerType    ServerType
+	ServerType    omi.ServerType
 	ServerName    string
 	State         string
 	NodeType      string
 	Address       string
-	researdClient *Client
-	searcher      *Searcher
-	register      *Register
+	researdClient *omi.Client
+	searcher      *omi.Searcher
+	register      *omi.Register
 }
 
-func newNode(serverType ServerType, serverName, state, nodeType, address string,
-	researdClient *Client, searcher *Searcher) *Node {
+func newNode(serverType omi.ServerType, serverName, state, nodeType, address string,
+	researdClient *omi.Client, searcher *omi.Searcher) *Node {
 	register := researdClient.NewRegister(serverName, address)
 	return &Node{
 		ServerType:    serverType,
@@ -29,7 +33,7 @@ func newNode(serverType ServerType, serverName, state, nodeType, address string,
 }
 
 func (node *Node) GetData() (map[string]string, string) {
-	data := node.searcher.getData(node.ServerName, node.State, node.NodeType, node.Address)
+	data := node.searcher.GetData(node.ServerName, node.State, node.NodeType, node.Address)
 	jsonByte, _ := json.MarshalIndent(data, " ", "  ")
 	return data, string(jsonByte)
 }
@@ -41,7 +45,7 @@ func (node *Node) ToMain() {
 
 func (node *Node) ToStandby() {
 	node.NodeType = node_standby
-	node.register.ToStandby()
+	node.register.ToBackup()
 }
 
 func (node *Node) Close() {
