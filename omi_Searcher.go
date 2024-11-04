@@ -29,9 +29,6 @@ func (searcher *Searcher) SearchAllServers(serverName string) []string {
 
 func (searcher *Searcher) AllServers() []string {
 	addrs := getKeysByNamespace(searcher.redisClient, searcher.namespace[:len(searcher.namespace)-1])
-	sort.Slice(addrs, func(a, b int) bool {
-		return addrs[a] < addrs[b]
-	})
 	return addrs
 }
 

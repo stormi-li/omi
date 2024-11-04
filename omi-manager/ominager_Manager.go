@@ -3,6 +3,7 @@ package ominager
 import (
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
@@ -71,6 +72,12 @@ func (manager *Manager) toNodeSlice(serverType omi.ServerType) []Node {
 		nodes = append(nodes, node)
 		manager.nodeMap[info[0]+const_separator+info[3]] = node
 	}
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i].ServerName < nodes[j].ServerName
+	})
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i].Address < nodes[j].Address
+	})
 	return nodes
 }
 
@@ -94,11 +101,12 @@ func split(address string) []string {
 }
 
 func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL.Path)
 	// 获取请求的路径并去掉开头的 '/'
 	path := strings.TrimPrefix(r.URL.Path, "/")
-
 	// 以 '/' 分割路径
 	parts := strings.Split(path, "/")
+
 	parts = parts[1:]
 	if parts[0] == "GetMQNodes" {
 		w.Write([]byte(nodesToString(manager.GetMQNodes())))
@@ -115,6 +123,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		nodes = append(nodes, manager.GetConfigNodes()...)
 		w.Write([]byte(nodesToString(nodes)))
 	}
+
 	getNode := func() *Node {
 		key := parts[1] + const_separator + parts[2]
 		node := manager.nodeMap[key]
@@ -127,17 +136,17 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		return &node
 	}
 
-	if parts[0] == "GetNodeData" {
-		node := getNode()
-		_, data := node.GetData()
-		w.Write([]byte(data))
-	}
+	// if parts[0] == "GetNodeData" {
+	// 	node := getNode()
+	// 	_, data := node.GetData()
+	// 	w.Write([]byte(data))
+	// }
 	if parts[0] == "ToMain" {
 		node := getNode()
 		node.ToMain()
 		w.Write([]byte(node.ToString()))
 	}
-	if parts[0] == "ToStandby" {
+	if parts[0] == "ToBackup" {
 		node := getNode()
 		node.ToBackup()
 		w.Write([]byte(node.ToString()))
@@ -152,11 +161,11 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		node.Start()
 		w.Write([]byte(node.ToString()))
 	}
-	if parts[0] == "Close" {
-		node := getNode()
-		node.Close()
-		w.Write([]byte(node.ToString()))
-	}
+	// if parts[0] == "Close" {
+	// 	node := getNode()
+	// 	node.Close()
+	// 	w.Write([]byte(node.ToString()))
+	// }
 }
 
 func (manager *Manager) Start(managerName, address string) {

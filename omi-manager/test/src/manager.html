@@ -77,7 +77,6 @@
             max-width: 800px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 10px;
             overflow-y: auto;
             max-height: 65vh;
             /* 固定内容区高度 */
@@ -91,7 +90,17 @@
             display: flex;
             align-items: center;
             padding: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
             border-bottom: 1px solid #ccc;
+        }
+
+        #table_row_1 {
+            background-color: #eaf1fd;
+        }
+
+        #table_row_2 {
+            background-color: #d9e6fc;
         }
 
         .table_row:last-child {
@@ -226,10 +235,15 @@
                     const servers = dataArray.map(data => new ServerInfo(data));
                     const dataContainer = document.getElementById('data-container');
                     dataContainer.innerHTML = ''; // 清空容器
-
+                    let name = ""
+                    let type = "table_row_1"
                     servers.forEach(server => {
+                        if (server.serverName !== name) {
+                            type = (type === "table_row_1") ? "table_row_2" : "table_row_1";
+                            name = server.serverName;
+                        }
                         const rowHTML = `
-                <div class="table_row">
+                <div class="table_row" id="${type}">
                     <span class="type">${server.serverType}</span>
                     <span class="name">${server.serverName}</span>
                     <span class="address">${server.address}</span>
@@ -256,25 +270,32 @@
                         mainButton.addEventListener('click', () => {
                             backupButton.disabled = false; // 禁用副节点按钮
                             mainButton.disabled = true; // 保证主节点按钮可用
-                            alert(type.innerHTML + name.innerHTML + address.innerHTML)
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToBackup" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
                         });
 
                         // 副节点按钮点击事件
                         backupButton.addEventListener('click', () => {
                             mainButton.disabled = false; // 禁用主节点按钮
                             backupButton.disabled = true; // 保证副节点按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToMain" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
                         });
 
                         // 启动按钮点击事件
                         startButton.addEventListener('click', () => {
                             stopButton.disabled = false; // 禁用停止按钮
                             startButton.disabled = true; // 保证启动按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Stop" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
                         });
 
                         // 停止按钮点击事件
                         stopButton.addEventListener('click', () => {
                             startButton.disabled = false; // 禁用启动按钮
                             stopButton.disabled = true; // 保证停止按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Start" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
                         });
                     });
                 })

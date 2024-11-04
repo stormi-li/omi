@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omi Search</title>
+    <title>Omianger</title>
     <style>
         /* 页面整体样式 */
         body {
@@ -77,7 +77,6 @@
             max-width: 800px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 10px;
             overflow-y: auto;
             max-height: 65vh;
             /* 固定内容区高度 */
@@ -87,30 +86,40 @@
         }
 
         /* 表格区样式 */
-        .table-row {
+        .table_row {
             display: flex;
             align-items: center;
             padding: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
             border-bottom: 1px solid #ccc;
         }
 
-        .table-row:last-child {
+        #table_row_1 {
+            background-color: #eaf1fd;
+        }
+
+        #table_row_2 {
+            background-color: #d9e6fc;
+        }
+
+        .table_row:last-child {
             border-bottom: none;
         }
 
-        .table-row .type {
+        .table_row .type {
             flex: 1;
             /* 类型占较小宽度 */
             text-align: center;
         }
 
-        .table-row .name {
+        .table_row .name {
             flex: 4;
             /* 名称占中等宽度 */
             text-align: center;
         }
 
-        .table-row .address {
+        .table_row .address {
             flex: 4;
             /* 地址信息占较大宽度 */
             text-align: center;
@@ -151,7 +160,7 @@
 
     <!-- 内容显示区 -->
     <div class="content-container" id="data-container">
-        <div class="table-row">
+        <div class="table_row">
             <span class="type">类型</span>
             <span class="name">名称</span>
             <span class="address">地址信息</span>
@@ -223,22 +232,71 @@
             fetch(path) // 替换为实际 URL
                 .then(response => response.json())
                 .then(dataArray => {
-                    servers = dataArray.map(data => new ServerInfo(data));
+                    const servers = dataArray.map(data => new ServerInfo(data));
                     const dataContainer = document.getElementById('data-container');
                     dataContainer.innerHTML = ''; // 清空容器
+                    let name = ""
+                    let type = "table_row_1"
                     servers.forEach(server => {
+                        if (server.serverName !== name) {
+                            type = (type === "table_row_1") ? "table_row_2" : "table_row_1";
+                            name = server.serverName;
+                        }
                         const rowHTML = `
-                    <div class="table-row" id="${server.address}">
-                        <span class="type">${server.serverType}</span>
-                        <span class="name">${server.serverName}</span>
-                        <span class="address">${server.address}</span>
-                        <button class="button" id="main_button" ${server.nodeType !== "main" ? 'disabled' : ''}>主节点</button>
-                        <button class="button" id="backup_button" ${server.nodeType !== "backup" ? 'disabled' : ''}>副节点</button>
-                        <button class="button" id="start_button" ${server.state !== "start" ? 'disabled' : ''}>启动</button>
-                        <button class="button" id="stop_button" ${server.state !== "stop" ? 'disabled' : ''}>停止</button>
-                    </div>
-                `;
+                <div class="table_row" id="${type}">
+                    <span class="type">${server.serverType}</span>
+                    <span class="name">${server.serverName}</span>
+                    <span class="address">${server.address}</span>
+                    <button class="button main_button" ${server.nodeType !== "main" ? 'disabled' : ''}>主节点</button>
+                    <button class="button backup_button" ${server.nodeType !== "backup" ? 'disabled' : ''}>副节点</button>
+                    <button class="button start_button" ${server.state !== "start" ? 'disabled' : ''}>启动</button>
+                    <button class="button stop_button" ${server.state !== "stop" ? 'disabled' : ''}>停止</button>
+                </div>
+            `;
                         dataContainer.innerHTML += rowHTML;
+                    });
+
+                    // 选择所有生成的 .table_row 元素并添加事件监听
+                    document.querySelectorAll('.table_row').forEach(row => {
+                        const type = row.querySelector('.type');
+                        const name = row.querySelector('.name');
+                        const address = row.querySelector('.address');
+                        const mainButton = row.querySelector('.main_button');
+                        const backupButton = row.querySelector('.backup_button');
+                        const startButton = row.querySelector('.start_button');
+                        const stopButton = row.querySelector('.stop_button');
+
+                        // 主节点按钮点击事件
+                        mainButton.addEventListener('click', () => {
+                            backupButton.disabled = false; // 禁用副节点按钮
+                            mainButton.disabled = true; // 保证主节点按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToBackup" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
+                        });
+
+                        // 副节点按钮点击事件
+                        backupButton.addEventListener('click', () => {
+                            mainButton.disabled = false; // 禁用主节点按钮
+                            backupButton.disabled = true; // 保证副节点按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToMain" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
+                        });
+
+                        // 启动按钮点击事件
+                        startButton.addEventListener('click', () => {
+                            stopButton.disabled = false; // 禁用停止按钮
+                            startButton.disabled = true; // 保证启动按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Stop" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
+                        });
+
+                        // 停止按钮点击事件
+                        stopButton.addEventListener('click', () => {
+                            startButton.disabled = false; // 禁用启动按钮
+                            stopButton.disabled = true; // 保证停止按钮可用
+                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Start" + "/" + name.innerHTML + '/' + address.innerHTML
+                            fetch(path).catch(error => console.error('请求失败:', error));
+                        });
                     });
                 })
                 .catch(error => console.error('请求失败:', error));
