@@ -1,7 +1,10 @@
 package ominager
 
-const state_start = "start"
-const state_stop = "stop"
-const const_separator = ":"
-const nodeType_backup = "backup"
-const nodeType_main = "main"
+const command_Start="Start"
+const command_Stop="Stop"
+const command_ToBackup="ToBackup"
+const command_ToMain="ToMain"
+const command_GetMQNodes="GetMQNodes"
+const command_GetServerNodes = "GetServerNodes"
+const command_GetConfigNodes = "GetConfigNodes"
+const command_GetAllNodes = "GetAllNodes"

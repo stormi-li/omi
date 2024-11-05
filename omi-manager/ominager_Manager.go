@@ -14,9 +14,6 @@ type Manager struct {
 	serverSearcher *omi.Searcher
 	mqSearcher     *omi.Searcher
 	configSearcher *omi.Searcher
-	serverClient   *omi.Client
-	mqClient       *omi.Client
-	configClient   *omi.Client
 	nodeMap        map[string]Node
 }
 
@@ -25,9 +22,6 @@ func NewManager(redisClient *redis.Client, namespace string) *Manager {
 	mqClient := omi.NewClient(redisClient, namespace, omi.MQ)
 	configClient := omi.NewClient(redisClient, namespace, omi.Config)
 	return &Manager{
-		serverClient:   serverClient,
-		mqClient:       mqClient,
-		configClient:   configClient,
 		serverSearcher: serverClient.NewSearcher(),
 		mqSearcher:     mqClient.NewSearcher(),
 		configSearcher: configClient.NewSearcher(),
@@ -36,36 +30,22 @@ func NewManager(redisClient *redis.Client, namespace string) *Manager {
 }
 
 func (manager *Manager) GetServerNodes() []Node {
-	return manager.toNodeSlice(omi.Server)
+	return manager.toNodeSlice(omi.Server, manager.serverSearcher)
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(omi.MQ)
+	return manager.toNodeSlice(omi.MQ, manager.mqSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
-	return manager.toNodeSlice(omi.Config)
+	return manager.toNodeSlice(omi.Config, manager.configSearcher)
 }
-func (manager *Manager) toNodeSlice(serverType omi.ServerType) []Node {
-	var keys []string
+
+func (manager *Manager) toNodeSlice(serverType omi.ServerType, searcher *omi.Searcher) []Node {
+	keys := searcher.AllServers()
 	nodes := []Node{}
 	var client *omi.Client
-	var searcher *omi.Searcher
-	if serverType == omi.Server {
-		client = manager.serverClient
-		searcher = manager.serverSearcher
-		keys = manager.serverSearcher.AllServers()
-	}
-	if serverType == omi.MQ {
-		client = manager.mqClient
-		searcher = manager.mqSearcher
-		keys = manager.mqSearcher.AllServers()
-	}
-	if serverType == omi.Config {
-		client = manager.configClient
-		searcher = manager.configSearcher
-		keys = manager.configSearcher.AllServers()
-	}
+
 	for _, val := range keys {
 		info := spliteNodeKey(val)
 		node := *newNode(serverType, info[0], info[1], info[2], info[3], client, searcher)
@@ -89,16 +69,16 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(path, "/")
 
 	parts = parts[1:]
-	if parts[0] == "GetMQNodes" {
+	if parts[0] == command_GetMQNodes {
 		w.Write([]byte(nodesToString(manager.GetMQNodes())))
 	}
-	if parts[0] == "GetServerNodes" {
+	if parts[0] == command_GetServerNodes {
 		w.Write([]byte(nodesToString(manager.GetServerNodes())))
 	}
-	if parts[0] == "GetConfigNodes" {
+	if parts[0] == command_GetConfigNodes {
 		w.Write([]byte(nodesToString(manager.GetConfigNodes())))
 	}
-	if parts[0] == "GetAllNodes" {
+	if parts[0] == command_GetAllNodes {
 		nodes := manager.GetServerNodes()
 		nodes = append(nodes, manager.GetMQNodes()...)
 		nodes = append(nodes, manager.GetConfigNodes()...)
@@ -117,22 +97,22 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		return &node
 	}
 
-	if parts[0] == "ToMain" {
+	if parts[0] == command_ToMain {
 		node := getNode()
 		node.ToMain()
 		w.Write([]byte(node.ToString()))
 	}
-	if parts[0] == "ToBackup" {
+	if parts[0] == command_ToBackup {
 		node := getNode()
 		node.ToBackup()
 		w.Write([]byte(node.ToString()))
 	}
-	if parts[0] == "Stop" {
+	if parts[0] == command_Stop {
 		node := getNode()
 		node.Stop()
 		w.Write([]byte(node.ToString()))
 	}
-	if parts[0] == "Start" {
+	if parts[0] == command_Start {
 		node := getNode()
 		node.Start()
 		w.Write([]byte(node.ToString()))
