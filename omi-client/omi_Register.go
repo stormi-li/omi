@@ -28,11 +28,11 @@ func (register *Register) StartOnMain(data ...map[string]string) {
 	register.start(node_main, data[0])
 }
 
-func (register *Register) StartOnBackup(data map[string]string) {
+func (register *Register) StartOnBackup(data ...map[string]string) {
 	if len(data) == 0 {
 		register.start(node_backup, map[string]string{})
 	}
-	register.start(node_backup, data)
+	register.start(node_backup, data[0])
 }
 
 func (register *Register) start(nodeType string, data map[string]string) {
