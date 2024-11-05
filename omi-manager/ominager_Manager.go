@@ -8,16 +8,16 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omi"
-	omiclient "github.com/stormi-li/omi/omi_client"
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Manager struct {
-	serverSearcher *omiclient.Searcher
-	mqSearcher     *omiclient.Searcher
-	configSearcher *omiclient.Searcher
 	serverClient   *omiclient.Client
 	mqClient       *omiclient.MQClient
 	configClient   *omiclient.Client
+	serverSearcher *omiclient.Searcher
+	mqSearcher     *omiclient.Searcher
+	configSearcher *omiclient.Searcher
 	nodeMap        map[string]Node
 }
 

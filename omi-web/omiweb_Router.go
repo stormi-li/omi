@@ -1,7 +1,7 @@
 package omiweb
 
 import (
-	omiclient "github.com/stormi-li/omi/omi_client"
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Router struct {
