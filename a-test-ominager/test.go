@@ -15,6 +15,4 @@ func main() {
 	})
 
 	omimanager.Start(redisClient, "118.25.196.166:8089")
-
-	
 }

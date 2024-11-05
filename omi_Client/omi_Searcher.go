@@ -3,6 +3,7 @@ package omiclient
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"strings"
 	"time"
 
@@ -19,18 +20,20 @@ type Searcher struct {
 }
 
 func (searcher *Searcher) SearchAllServers(serverName string) []string {
-	return getKeysByNamespace(searcher.redisClient, searcher.namespace+serverName)
+	addrs := getKeysByNamespace(searcher.redisClient, searcher.namespace+serverName)
+	sort.Slice(addrs, func(i, j int) bool {
+		return addrs[i] > addrs[j]
+	})
+	return addrs
 }
 
 func (searcher *Searcher) AllServers() []string {
-	addrs := getKeysByNamespace(searcher.redisClient, searcher.namespace[:len(searcher.namespace)-1])
-	return addrs
+	return getKeysByNamespace(searcher.redisClient, searcher.namespace[:len(searcher.namespace)-1])
 }
 
 func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, map[string]string) {
 	addrs := searcher.SearchStartingServers(serverName)
 	var validAddr string
-
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
 		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+namespaceSeparator+addrs[0]).Result()

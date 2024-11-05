@@ -59,10 +59,10 @@ func (manager *Manager) toNodeSlice(serverType string, omiClient *omiclient.Clie
 		manager.nodeMap[info[0]+":"+info[3]] = node
 	}
 	sort.Slice(nodes, func(i, j int) bool {
-		return nodes[i].ServerName < nodes[j].ServerName
+		return nodes[i].Address > nodes[j].Address
 	})
 	sort.Slice(nodes, func(i, j int) bool {
-		return nodes[i].Address < nodes[j].Address
+		return nodes[i].ServerName < nodes[j].ServerName
 	})
 	return nodes
 }
