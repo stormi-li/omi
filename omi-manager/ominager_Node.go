@@ -7,28 +7,27 @@ import (
 )
 
 type Node struct {
-	ServerType    omi.ServerType
-	ServerName    string
-	State         string
-	NodeType      string
-	Address       string
-	researdClient *omi.Client
-	searcher      *omi.Searcher
-	register      *omi.Register
+	ServerType omi.ServerType
+	ServerName string
+	State      string
+	NodeType   string
+	Address    string
+	omiClient  *omi.Client
+	searcher   *omi.Searcher
+	register   *omi.Register
 }
 
-func newNode(serverType omi.ServerType, serverName, state, nodeType, address string,
-	researdClient *omi.Client, searcher *omi.Searcher) *Node {
-	register := researdClient.NewRegister(serverName, address)
+func newNode(serverType omi.ServerType, serverName, state, nodeType, address string, omiClient *omi.Client, searcher *omi.Searcher) *Node {
+	register := omiClient.NewRegister(serverName, address)
 	return &Node{
-		ServerType:    serverType,
-		ServerName:    serverName,
-		State:         state,
-		NodeType:      nodeType,
-		Address:       address,
-		researdClient: researdClient,
-		searcher:      searcher,
-		register:      register,
+		ServerType: serverType,
+		ServerName: serverName,
+		State:      state,
+		NodeType:   nodeType,
+		Address:    address,
+		omiClient:  omiClient,
+		searcher:   searcher,
+		register:   register,
 	}
 }
 

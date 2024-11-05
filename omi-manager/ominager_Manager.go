@@ -14,6 +14,9 @@ type Manager struct {
 	serverSearcher *omi.Searcher
 	mqSearcher     *omi.Searcher
 	configSearcher *omi.Searcher
+	serverClient   *omi.Client
+	mqClient       *omi.Client
+	configClient   *omi.Client
 	nodeMap        map[string]Node
 }
 
@@ -22,6 +25,9 @@ func NewManager(redisClient *redis.Client, namespace string) *Manager {
 	mqClient := omi.NewClient(redisClient, namespace, omi.MQ)
 	configClient := omi.NewClient(redisClient, namespace, omi.Config)
 	return &Manager{
+		serverClient:   serverClient,
+		mqClient:       mqClient,
+		configClient:   configClient,
 		serverSearcher: serverClient.NewSearcher(),
 		mqSearcher:     mqClient.NewSearcher(),
 		configSearcher: configClient.NewSearcher(),
@@ -30,25 +36,24 @@ func NewManager(redisClient *redis.Client, namespace string) *Manager {
 }
 
 func (manager *Manager) GetServerNodes() []Node {
-	return manager.toNodeSlice(omi.Server, manager.serverSearcher)
+	return manager.toNodeSlice(omi.Server, manager.serverClient, manager.serverSearcher)
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(omi.MQ, manager.mqSearcher)
+	return manager.toNodeSlice(omi.MQ, manager.mqClient, manager.mqSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
-	return manager.toNodeSlice(omi.Config, manager.configSearcher)
+	return manager.toNodeSlice(omi.Config, manager.configClient, manager.configSearcher)
 }
 
-func (manager *Manager) toNodeSlice(serverType omi.ServerType, searcher *omi.Searcher) []Node {
+func (manager *Manager) toNodeSlice(serverType omi.ServerType, omiClient *omi.Client, searcher *omi.Searcher) []Node {
 	keys := searcher.AllServers()
 	nodes := []Node{}
-	var client *omi.Client
 
 	for _, val := range keys {
 		info := spliteNodeKey(val)
-		node := *newNode(serverType, info[0], info[1], info[2], info[3], client, searcher)
+		node := *newNode(serverType, info[0], info[1], info[2], info[3], omiClient, searcher)
 		nodes = append(nodes, node)
 		manager.nodeMap[info[0]+omi.NamespaceSeparator+info[3]] = node
 	}
