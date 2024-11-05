@@ -2,6 +2,7 @@ package omiweb
 
 import (
 	"embed"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -77,4 +78,50 @@ func (omiweb *Client) start(embedSources ...embed.FS) {
 	go register.StartOnMain(map[string]string{"omi web server": omiweb.serverName})
 
 	http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
+}
+
+func (omiweb *Client) forwardHandler(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	// 以 '/' 分割路径，获取第一个参数
+	parts := strings.Split(path, "/")
+
+	address := omiweb.router.getAddress(parts[1])
+
+	//未获取到地址
+	if address == "" {
+		address = const_noaddress
+	}
+
+	targetURL := address + "/" + getStringAfterSecondSlash(path)
+	// 创建一个 HTTP 请求，将 A 发送给 B 的请求原样转发给 C
+	req, err := http.NewRequest(r.Method, "http://"+targetURL, r.Body)
+	if err != nil {
+		http.Error(w, "无法创建请求", http.StatusInternalServerError)
+		return
+	}
+
+	// 复制请求头，以保持请求的原始头信息
+	req.Header = r.Header
+
+	// 使用 HTTP 客户端发送请求到 C
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, "请求转发失败", http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	// 将 C 的响应头写回给 A
+	for key, values := range resp.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+
+	// 设置返回状态码为 C 返回的状态码
+	w.WriteHeader(resp.StatusCode)
+
+	// 将 C 的响应体原封不动地返回给 A
+	io.Copy(w, resp.Body)
 }
