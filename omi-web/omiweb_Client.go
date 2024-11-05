@@ -89,7 +89,8 @@ func (omiweb *Client) forwardHandler(w http.ResponseWriter, r *http.Request) {
 
 	//未获取到地址
 	if address == "" {
-		address = const_noaddress
+		http.Error(w, "未获取到地址:"+parts[1], http.StatusInternalServerError)
+		return
 	}
 
 	targetURL := address + "/" + getStringAfterSecondSlash(path)
