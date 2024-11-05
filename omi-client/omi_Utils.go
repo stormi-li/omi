@@ -3,7 +3,6 @@ package omiclient
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -17,14 +16,6 @@ func jsonStrToMap(jsonStr string) map[string]string {
 	var dataMap map[string]string
 	json.Unmarshal([]byte(jsonStr), &dataMap)
 	return dataMap
-}
-
-func splitCommand(address string) (string, string) {
-	index := strings.Index(address, namespaceSeparator)
-	if index == -1 {
-		return "", ""
-	}
-	return address[:index], address[index+1:]
 }
 
 func getKeysByNamespace(redisClient *redis.Client, namespace string) []string {
