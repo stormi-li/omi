@@ -19,7 +19,7 @@ func NewClient(redisClient *redis.Client, namespace string, serverType ServerTyp
 	return &Client{
 		omipcClient: omipc.NewClient(redisClient, namespace),
 		redisClient: redisClient,
-		namespace:   namespace + const_separator + prefix,
+		namespace:   namespace + NamespaceSeparator + prefix,
 		serverType:  serverType,
 	}
 }

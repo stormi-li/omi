@@ -14,19 +14,19 @@ type Client struct {
 	serverType  ServerType
 }
 
-func (c *Client) GetOmipc() *omipc.Client {
+func (c *Client) NewOmipc() *omipc.Client {
 	return c.omipcClient
 }
 
 func (c *Client) NewRegister(serverName string, address string) *Register {
 	return &Register{
-		redisClient: c.redisClient,
-		omipcClient: c.omipcClient,
-		namespace:   c.namespace,
-		serverName:  serverName,
-		ctx:         context.Background(),
-		address:     address,
-		channel:     serverName + const_separator + address,
+		redisClient:      c.redisClient,
+		omipcClient:      c.omipcClient,
+		namespace:        c.namespace,
+		serverName:       serverName,
+		ctx:              context.Background(),
+		address:          address,
+		redisChannelName: serverName + NamespaceSeparator + address,
 	}
 }
 

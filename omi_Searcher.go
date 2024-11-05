@@ -37,14 +37,14 @@ func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, m
 	var validAddr string
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
-		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+const_separator+addrs[0]).Result()
+		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+NamespaceSeparator+addrs[0]).Result()
 		json.Unmarshal([]byte(data), &searcher.data)
 	}
 	return validAddr, searcher.data
 }
 
 func (searcher *Searcher) GetData(serverName, state, nodeType, address string) map[string]string {
-	key := searcher.namespace + serverName + const_separator + state + const_separator + nodeType + const_separator + address
+	key := searcher.namespace + serverName + NamespaceSeparator + state + NamespaceSeparator + nodeType + NamespaceSeparator + address
 	data, _ := searcher.redisClient.Get(searcher.ctx, key).Result()
 	return jsonStrToMap(data)
 }
@@ -79,7 +79,7 @@ func (searcher *Searcher) SearchStartingServers(serverName string) []string {
 }
 
 func split(address string) []string {
-	index := strings.Index(address, const_separator)
+	index := strings.Index(address, NamespaceSeparator)
 	if index == -1 {
 		return nil
 	}

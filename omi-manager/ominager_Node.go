@@ -33,22 +33,18 @@ func newNode(serverType omi.ServerType, serverName, state, nodeType, address str
 }
 
 func (node *Node) ToMain() {
-	node.NodeType = nodeType_main
 	node.register.ToMain()
 }
 
 func (node *Node) ToBackup() {
-	node.NodeType = nodeType_backup
 	node.register.ToBackup()
 }
 
 func (node *Node) Start() {
-	node.State = state_start
 	node.register.Start()
 }
 
 func (node *Node) Stop() {
-	node.State = state_stop
 	node.register.Stop()
 }
 

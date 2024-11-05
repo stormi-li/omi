@@ -70,7 +70,7 @@ func (manager *Manager) toNodeSlice(serverType omi.ServerType) []Node {
 		info := spliteNodeKey(val)
 		node := *newNode(serverType, info[0], info[1], info[2], info[3], client, searcher)
 		nodes = append(nodes, node)
-		manager.nodeMap[info[0]+const_separator+info[3]] = node
+		manager.nodeMap[info[0]+omi.NamespaceSeparator+info[3]] = node
 	}
 	sort.Slice(nodes, func(i, j int) bool {
 		return nodes[i].ServerName < nodes[j].ServerName
@@ -79,25 +79,6 @@ func (manager *Manager) toNodeSlice(serverType omi.ServerType) []Node {
 		return nodes[i].Address < nodes[j].Address
 	})
 	return nodes
-}
-
-func spliteNodeKey(key string) []string {
-	res := []string{}
-	for i := 0; i < 3; i++ {
-		temp := split(key)
-		key = temp[1]
-		res = append(res, temp[0])
-	}
-	res = append(res, key)
-	return res
-}
-
-func split(address string) []string {
-	index := strings.Index(address, const_separator)
-	if index == -1 {
-		return nil
-	}
-	return []string{address[:index], address[index+1:]}
 }
 
 func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +106,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getNode := func() *Node {
-		key := parts[1] + const_separator + parts[2]
+		key := parts[1] + omi.NamespaceSeparator + parts[2]
 		node := manager.nodeMap[key]
 		if node.Address == "" {
 			manager.GetServerNodes()
@@ -156,4 +137,23 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		node.Start()
 		w.Write([]byte(node.ToString()))
 	}
+}
+
+func spliteNodeKey(key string) []string {
+	res := []string{}
+	for i := 0; i < 3; i++ {
+		temp := split(key)
+		key = temp[1]
+		res = append(res, temp[0])
+	}
+	res = append(res, key)
+	return res
+}
+
+func split(address string) []string {
+	index := strings.Index(address, omi.NamespaceSeparator)
+	if index == -1 {
+		return nil
+	}
+	return []string{address[:index], address[index+1:]}
 }

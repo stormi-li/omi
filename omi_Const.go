@@ -10,7 +10,7 @@ const state_stop = "stop"
 const const_configPrefix = "stormi:config:"
 const const_serverPrefix = "stormi:server:"
 const const_mqPrefix = "stormi:mq:"
-const const_separator = ":"
+const NamespaceSeparator = ":"
 const command_toBackup = "backup"
 const command_toMain = "main"
 const node_backup = "backup"
@@ -20,7 +20,7 @@ const const_retryWaitTime = 500 * time.Millisecond
 const const_maxRetryCount = 10
 const const_expireTime = 2 * time.Second
 
-const const_listenWaitTime = 1*time.Second
+const const_listenWaitTime = 1 * time.Second
 
 type ServerType string
 

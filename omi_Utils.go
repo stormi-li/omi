@@ -20,7 +20,7 @@ func jsonStrToMap(jsonStr string) map[string]string {
 }
 
 func splitCommand(address string) (string, string) {
-	index := strings.Index(address, const_separator)
+	index := strings.Index(address, NamespaceSeparator)
 	if index == -1 {
 		return "", ""
 	}
