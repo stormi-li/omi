@@ -2,7 +2,6 @@ package omiclient
 
 import (
 	"context"
-	"encoding/json"
 	"sort"
 	"strings"
 	"time"
@@ -37,9 +36,8 @@ func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, m
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
 		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+namespaceSeparator+addrs[0]).Result()
-		json.Unmarshal([]byte(data), &searcher.data)
+		searcher.data = jsonStrToMap(data)
 	}
-
 	return validAddr, searcher.data
 }
 
@@ -51,15 +49,10 @@ func (searcher *Searcher) GetData(serverName, state, nodeType, address string) m
 
 func (searcher *Searcher) Listen(serverName string, handler func(address string, data map[string]string)) {
 	addr := ""
-	jsonByte, _ := json.MarshalIndent(searcher.data, " ", "  ")
-	dataStr := string(jsonByte)
 	for {
-		newAddr, data := searcher.GetHighestPriorityServer(serverName)
-		jsonByte, _ = json.MarshalIndent(data, " ", "  ")
-		newDataStr := string(jsonByte)
-		if newAddr != addr || newDataStr != dataStr {
+		newAddr, _ := searcher.GetHighestPriorityServer(serverName)
+		if newAddr != addr {
 			addr = newAddr
-			dataStr = newDataStr
 			handler(addr, searcher.data)
 		}
 		time.Sleep(const_listenWaitTime)

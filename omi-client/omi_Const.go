@@ -2,7 +2,6 @@ package omiclient
 
 import "time"
 
-const command_updateNodeData = "updateNodeData"
 const command_start = "start"
 const command_stop = "stop"
 const state_start = "start"

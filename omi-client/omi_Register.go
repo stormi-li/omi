@@ -2,7 +2,6 @@ package omiclient
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"time"
 
@@ -13,12 +12,12 @@ import (
 type Register struct {
 	redisClient      *redis.Client
 	omipcClient      *omipc.Client
-	namespace        string
-	ctx              context.Context
 	serverName       string
 	nodeType         string
 	address          string
 	redisChannelName string
+	namespace        string
+	ctx              context.Context
 }
 
 func (register *Register) StartOnMain(data ...map[string]string) {
@@ -36,8 +35,7 @@ func (register *Register) StartOnBackup(data ...map[string]string) {
 }
 
 func (register *Register) start(nodeType string, data map[string]string) {
-	jsonByte, _ := json.MarshalIndent(data, " ", "  ")
-	jsonStrData := string(jsonByte)
+	jsonStrData := mapToJsonStr(data)
 	register.nodeType = nodeType
 	nodeState := state_start
 
@@ -64,9 +62,6 @@ func (register *Register) start(nodeType string, data map[string]string) {
 		if msg == command_toBackup {
 			nodeType = node_backup
 		}
-		if command, json := splitCommand(msg); command == command_updateNodeData {
-			jsonStrData = json
-		}
 	})
 }
 
@@ -84,8 +79,4 @@ func (register *Register) ToStart() {
 
 func (register *Register) ToStop() {
 	register.omipcClient.Notify(register.redisChannelName, command_stop)
-}
-
-func (register *Register) UpdateData(data map[string]string) {
-	register.omipcClient.Notify(register.redisChannelName, command_updateNodeData+":"+mapToJsonStr(data))
 }
