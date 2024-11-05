@@ -15,6 +15,37 @@ type Consumer struct {
 	Register    *Register
 }
 
+func (consumer *Consumer) StartOnMain(capacity int, handler func(message []byte)) {
+	go consumer.Register.StartOnMain(map[string]string{"server type": "MQ"})
+	consumer.start(capacity, handler)
+}
+
+func (consumer *Consumer) StartOnBackup(capacity int, handler func(message []byte)) {
+	go consumer.Register.StartOnBackup(map[string]string{"server type": "MQ"})
+	consumer.start(capacity, handler)
+}
+
+func (consumer *Consumer) start(capacity int, handler func(message []byte)) {
+	consumer.messageChan = make(chan []byte, capacity)
+	go func() {
+		listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
+		if err != nil {
+			panic(err)
+		}
+		log.Println("omi consumer server: " + consumer.channel + " is running on " + consumer.address)
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				continue
+			}
+			go consumer.handleConnection(conn)
+		}
+	}()
+	for {
+		msg := <-consumer.messageChan
+		handler(msg)
+	}
+}
 func (consumer *Consumer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
@@ -55,37 +86,5 @@ func (consumer *Consumer) handleConnection(conn net.Conn) {
 			// 6. 从缓存中移除已处理的消息
 			tempBuffer = tempBuffer[totalLength:]
 		}
-	}
-}
-
-func (consumer *Consumer) StartOnMain(capacity int, handler func(message []byte)) {
-	go consumer.Register.StartOnMain(map[string]string{"server type": "MQ"})
-	consumer.start(capacity, handler)
-}
-
-func (consumer *Consumer) StartOnBackup(capacity int, handler func(message []byte)) {
-	go consumer.Register.StartOnBackup(map[string]string{"server type": "MQ"})
-	consumer.start(capacity, handler)
-}
-
-func (consumer *Consumer) start(capacity int, handler func(message []byte)) {
-	consumer.messageChan = make(chan []byte, capacity)
-	go func() {
-		listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
-		if err != nil {
-			panic(err)
-		}
-		log.Println("omi consumer server: " + consumer.channel + " is running on " + consumer.address)
-		for {
-			conn, err := listener.Accept()
-			if err != nil {
-				continue
-			}
-			go consumer.handleConnection(conn)
-		}
-	}()
-	for {
-		msg := <-consumer.messageChan
-		handler(msg)
 	}
 }
