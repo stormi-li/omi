@@ -9,7 +9,7 @@ import (
 func NewClient(redisClient *redis.Client, namespace string) *Client {
 	return &Client{
 		redisClient: redisClient,
-		namespace:   namespace + const_separator,
+		namespace:   namespace + NamespaceSeparator,
 		ctx:         context.Background(),
 	}
 }

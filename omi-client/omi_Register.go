@@ -41,13 +41,13 @@ func (register *Register) start(nodeType string, data map[string]string) {
 
 	go func() {
 		for {
-			key := register.namespace + register.serverName + namespaceSeparator + nodeState + namespaceSeparator + nodeType + namespaceSeparator + register.address
+			key := register.namespace + register.serverName + omipc.NamespaceSeparator + nodeState + omipc.NamespaceSeparator + nodeType + omipc.NamespaceSeparator + register.address
 			register.redisClient.Set(register.ctx, key, jsonStrData, const_expireTime)
 			time.Sleep(const_expireTime / 2)
 		}
 	}()
 	log.Println("register server for", register.serverName+"["+register.address+"]", "is starting")
-	channel := register.serverName + namespaceSeparator + register.address
+	channel := register.serverName + omipc.NamespaceSeparator + register.address
 	listener := register.omipcClient.NewListener(channel)
 	listener.Listen(func(msg string) {
 		if msg == command_start {

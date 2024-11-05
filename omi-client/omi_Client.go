@@ -18,7 +18,7 @@ func NewClient(redisClient *redis.Client, namespace string, serverType string, p
 	return &Client{
 		omipcClient: omipc.NewClient(redisClient, namespace),
 		redisClient: redisClient,
-		namespace:   namespace + namespaceSeparator + prefix,
+		namespace:   namespace + omipc.NamespaceSeparator + prefix,
 		serverType:  serverType,
 	}
 }
@@ -31,7 +31,7 @@ func (c *Client) NewRegister(serverName string, address string) *Register {
 		serverName:       serverName,
 		ctx:              context.Background(),
 		address:          address,
-		redisChannelName: serverName + namespaceSeparator + address,
+		redisChannelName: serverName + omipc.NamespaceSeparator + address,
 	}
 }
 
@@ -43,5 +43,3 @@ func (c *Client) NewSearcher() *Searcher {
 		ctx:         context.Background(),
 	}
 }
-
-
