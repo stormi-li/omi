@@ -14,10 +14,6 @@ type Client struct {
 	serverType  ServerType
 }
 
-func (c *Client) NewOmipc() *omipc.Client {
-	return c.omipcClient
-}
-
 func (c *Client) NewRegister(serverName string, address string) *Register {
 	return &Register{
 		redisClient:      c.redisClient,

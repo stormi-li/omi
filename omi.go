@@ -23,3 +23,7 @@ func NewClient(redisClient *redis.Client, namespace string, serverType ServerTyp
 		serverType:  serverType,
 	}
 }
+
+func NewOmipc(redisClient *redis.Client,namespace string) *omipc.Client {
+	return omipc.NewClient(redisClient, namespace)
+}
