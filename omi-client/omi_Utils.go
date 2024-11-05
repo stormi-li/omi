@@ -48,6 +48,6 @@ func getKeysByNamespace(redisClient *redis.Client, namespace string) []string {
 			break
 		}
 	}
-	
+
 	return keys
 }

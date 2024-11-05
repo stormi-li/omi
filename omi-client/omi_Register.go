@@ -21,11 +21,17 @@ type Register struct {
 	redisChannelName string
 }
 
-func (register *Register) StartOnMain(data map[string]string) {
-	register.start(node_main, data)
+func (register *Register) StartOnMain(data ...map[string]string) {
+	if len(data) == 0 {
+		register.start(node_main, map[string]string{})
+	}
+	register.start(node_main, data[0])
 }
 
 func (register *Register) StartOnBackup(data map[string]string) {
+	if len(data) == 0 {
+		register.start(node_backup, map[string]string{})
+	}
 	register.start(node_backup, data)
 }
 
