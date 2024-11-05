@@ -1,4 +1,4 @@
-package omi
+package omiclient
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func jsonStrToMap(jsonStr string) map[string]string {
 }
 
 func splitCommand(address string) (string, string) {
-	index := strings.Index(address, NamespaceSeparator)
+	index := strings.Index(address, namespaceSeparator)
 	if index == -1 {
 		return "", ""
 	}
@@ -48,5 +48,6 @@ func getKeysByNamespace(redisClient *redis.Client, namespace string) []string {
 			break
 		}
 	}
+	
 	return keys
 }

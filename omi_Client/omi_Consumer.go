@@ -1,4 +1,4 @@
-package omi
+package omiclient
 
 import (
 	"encoding/binary"
@@ -12,16 +12,16 @@ type Consumer struct {
 	channel     string
 	address     string
 	messageChan chan []byte
-	Register    *Register
+	register    *Register
 }
 
 func (consumer *Consumer) StartOnMain(capacity int, handler func(message []byte)) {
-	go consumer.Register.StartOnMain(map[string]string{"server type": "MQ"})
+	go consumer.register.StartOnMain(map[string]string{"server type": "MQ"})
 	consumer.start(capacity, handler)
 }
 
 func (consumer *Consumer) StartOnBackup(capacity int, handler func(message []byte)) {
-	go consumer.Register.StartOnBackup(map[string]string{"server type": "MQ"})
+	go consumer.register.StartOnBackup(map[string]string{"server type": "MQ"})
 	consumer.start(capacity, handler)
 }
 

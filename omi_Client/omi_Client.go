@@ -1,4 +1,4 @@
-package omi
+package omiclient
 
 import (
 	"context"
@@ -11,7 +11,16 @@ type Client struct {
 	redisClient *redis.Client
 	omipcClient *omipc.Client
 	namespace   string
-	serverType  ServerType
+	serverType  string
+}
+
+func NewClient(redisClient *redis.Client, namespace string, serverType string, prefix string) *Client {
+	return &Client{
+		omipcClient: omipc.NewClient(redisClient, namespace),
+		redisClient: redisClient,
+		namespace:   namespace + namespaceSeparator + prefix,
+		serverType:  serverType,
+	}
 }
 
 func (c *Client) NewRegister(serverName string, address string) *Register {
@@ -22,7 +31,7 @@ func (c *Client) NewRegister(serverName string, address string) *Register {
 		serverName:       serverName,
 		ctx:              context.Background(),
 		address:          address,
-		redisChannelName: serverName + NamespaceSeparator + address,
+		redisChannelName: serverName + namespaceSeparator + address,
 	}
 }
 
@@ -35,26 +44,4 @@ func (c *Client) NewSearcher() *Searcher {
 	}
 }
 
-func (c *Client) NewConsumer(channel string, address string) *Consumer {
-	if c.serverType != MQ {
-		panic("server type must be mq")
-	}
-	return &Consumer{
-		omiClient: c,
-		channel:   channel,
-		address:   address,
-		Register:  c.NewRegister(channel, address),
-	}
-}
 
-func (c *Client) NewProducer(channel string) *Producer {
-	if c.serverType != MQ {
-		panic("server type must be mq")
-	}
-	producer := Producer{
-		omiClient: c,
-		channel:   channel,
-	}
-	go producer.listen()
-	return &producer
-}

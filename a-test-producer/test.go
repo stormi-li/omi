@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -16,10 +17,13 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	client := omi.NewClient(redisClient, "omi-namespace", omi.MQ)
+	client := omi.NewMQClient(redisClient, "omi-namespace")
 	producer := client.NewProducer("consumer_test")
 	for i := 0; i < 10000; i++ {
-		producer.Publish([]byte("omi" + strconv.Itoa(i)))
+		err := producer.Publish([]byte("omi" + strconv.Itoa(i)))
+		if err != nil {
+			fmt.Println(err)
+		}
 		time.Sleep(100 * time.Millisecond)
 	}
 }

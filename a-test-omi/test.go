@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omi"
 )
@@ -15,10 +13,6 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	client := omi.NewMQClient(redisClient, "omi-namespace")
-	consumer := client.NewConsumer("consumer_test", "118.25.196.166:4442")
-	consumer.StartOnMain(1000000, func(message []byte) {
-		fmt.Println(string(message))
-	})
-
+	c := omi.NewMQClient(redisClient, "omi")
+	c.NewProducer("f").Publish([]byte("fsfs"))
 }

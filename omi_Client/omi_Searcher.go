@@ -1,9 +1,8 @@
-package omi
+package omiclient
 
 import (
 	"context"
 	"encoding/json"
-	"sort"
 	"strings"
 	"time"
 
@@ -20,11 +19,7 @@ type Searcher struct {
 }
 
 func (searcher *Searcher) SearchAllServers(serverName string) []string {
-	addrs := getKeysByNamespace(searcher.redisClient, searcher.namespace+serverName)
-	sort.Slice(addrs, func(a, b int) bool {
-		return addrs[b] < addrs[a]
-	})
-	return addrs
+	return getKeysByNamespace(searcher.redisClient, searcher.namespace+serverName)
 }
 
 func (searcher *Searcher) AllServers() []string {
@@ -35,16 +30,18 @@ func (searcher *Searcher) AllServers() []string {
 func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, map[string]string) {
 	addrs := searcher.SearchStartingServers(serverName)
 	var validAddr string
+
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
-		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+NamespaceSeparator+addrs[0]).Result()
+		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+namespaceSeparator+addrs[0]).Result()
 		json.Unmarshal([]byte(data), &searcher.data)
 	}
+
 	return validAddr, searcher.data
 }
 
 func (searcher *Searcher) GetData(serverName, state, nodeType, address string) map[string]string {
-	key := searcher.namespace + serverName + NamespaceSeparator + state + NamespaceSeparator + nodeType + NamespaceSeparator + address
+	key := searcher.namespace + serverName + namespaceSeparator + state + namespaceSeparator + nodeType + namespaceSeparator + address
 	data, _ := searcher.redisClient.Get(searcher.ctx, key).Result()
 	return jsonStrToMap(data)
 }
@@ -79,7 +76,7 @@ func (searcher *Searcher) SearchStartingServers(serverName string) []string {
 }
 
 func split(address string) []string {
-	index := strings.Index(address, NamespaceSeparator)
+	index := strings.Index(address, namespaceSeparator)
 	if index == -1 {
 		return nil
 	}

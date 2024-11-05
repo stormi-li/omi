@@ -6,7 +6,7 @@ import (
 )
 
 func NewClient(redisClient *redis.Client, namespace string, serverName, address string) *Client {
-	omiClient := omi.NewClient(redisClient, namespace, omi.Server)
+	omiClient := omi.NewServerClient(redisClient, namespace)
 	return &Client{
 		router:      newRouter(omiClient.NewSearcher()),
 		redisClient: redisClient,

@@ -1,4 +1,4 @@
-package omi
+package omiclient
 
 import (
 	"context"
@@ -37,13 +37,13 @@ func (register *Register) start(nodeType string, data map[string]string) {
 
 	go func() {
 		for {
-			key := register.namespace + register.serverName + NamespaceSeparator + nodeState + NamespaceSeparator + nodeType + NamespaceSeparator + register.address
+			key := register.namespace + register.serverName + namespaceSeparator + nodeState + namespaceSeparator + nodeType + namespaceSeparator + register.address
 			register.redisClient.Set(register.ctx, key, jsonStrData, const_expireTime)
 			time.Sleep(const_expireTime / 2)
 		}
 	}()
 	log.Println("register server for", register.serverName+"["+register.address+"]", "is starting")
-	channel := register.serverName + NamespaceSeparator + register.address
+	channel := register.serverName + namespaceSeparator + register.address
 	listener := register.omipcClient.NewListener(channel)
 	listener.Listen(func(msg string) {
 		if msg == command_start {
@@ -72,11 +72,11 @@ func (register *Register) ToBackup() {
 	register.omipcClient.Notify(register.redisChannelName, command_toBackup)
 }
 
-func (register *Register) Start() {
+func (register *Register) ToStart() {
 	register.omipcClient.Notify(register.redisChannelName, command_start)
 }
 
-func (register *Register) Stop() {
+func (register *Register) ToStop() {
 	register.omipcClient.Notify(register.redisChannelName, command_stop)
 }
 

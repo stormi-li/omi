@@ -14,6 +14,14 @@ type Client struct {
 	ctx         context.Context
 }
 
+func NewOmipc(redisClient *redis.Client) *Client {
+	return &Client{
+		redisClient: redisClient,
+		namespace:   "omipc",
+		ctx:         context.Background(),
+	}
+}
+
 func (c *Client) Notify(channel, msg string) {
 	c.redisClient.Publish(c.ctx, c.namespace+channel, msg)
 }

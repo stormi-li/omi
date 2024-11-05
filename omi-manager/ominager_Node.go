@@ -3,21 +3,21 @@ package ominager
 import (
 	"encoding/json"
 
-	"github.com/stormi-li/omi"
+	omiclient "github.com/stormi-li/omi/omi_Client"
 )
 
 type Node struct {
-	ServerType omi.ServerType
+	ServerType string
 	ServerName string
 	State      string
 	NodeType   string
 	Address    string
-	omiClient  *omi.Client
-	searcher   *omi.Searcher
-	register   *omi.Register
+	omiClient  *omiclient.Client
+	searcher   *omiclient.Searcher
+	register   *omiclient.Register
 }
 
-func newNode(serverType omi.ServerType, serverName, state, nodeType, address string, omiClient *omi.Client, searcher *omi.Searcher) *Node {
+func newNode(serverType string, serverName, state, nodeType, address string, omiClient *omiclient.Client, searcher *omiclient.Searcher) *Node {
 	register := omiClient.NewRegister(serverName, address)
 	return &Node{
 		ServerType: serverType,
@@ -40,11 +40,11 @@ func (node *Node) ToBackup() {
 }
 
 func (node *Node) Start() {
-	node.register.Start()
+	node.register.ToStart()
 }
 
 func (node *Node) Stop() {
-	node.register.Stop()
+	node.register.ToStop()
 }
 
 func (node *Node) ToString() string {

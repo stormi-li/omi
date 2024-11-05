@@ -1,15 +1,15 @@
 package omiweb
 
 import (
-	"github.com/stormi-li/omi"
+	omiclient "github.com/stormi-li/omi/omi_Client"
 )
 
 type Router struct {
-	searcher   *omi.Searcher
+	searcher   *omiclient.Searcher
 	addressMap map[string][]string
 }
 
-func newRouter(searcher *omi.Searcher) *Router {
+func newRouter(searcher *omiclient.Searcher) *Router {
 	return &Router{
 		searcher:   searcher,
 		addressMap: map[string][]string{},

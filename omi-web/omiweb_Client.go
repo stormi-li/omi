@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	omiclient "github.com/stormi-li/omi/omi_Client"
 )
 
 type Client struct {
 	router      *Router
 	redisClient *redis.Client
-	omiClient   *omi.Client
+	omiClient   *omiclient.Client
 	serverName  string
 	namespace   string
 	address     string

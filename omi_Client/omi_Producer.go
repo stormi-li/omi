@@ -1,4 +1,4 @@
-package omi
+package omiclient
 
 import (
 	"encoding/binary"

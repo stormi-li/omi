@@ -8,46 +8,47 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omi"
+	omiclient "github.com/stormi-li/omi/omi_Client"
 )
 
 type Manager struct {
-	serverSearcher *omi.Searcher
-	mqSearcher     *omi.Searcher
-	configSearcher *omi.Searcher
-	serverClient   *omi.Client
-	mqClient       *omi.Client
-	configClient   *omi.Client
+	serverSearcher *omiclient.Searcher
+	mqSearcher     *omiclient.Searcher
+	configSearcher *omiclient.Searcher
+	serverClient   *omiclient.Client
+	mqClient       *omiclient.MQClient
+	configClient   *omiclient.Client
 	nodeMap        map[string]Node
 }
 
 func NewManager(redisClient *redis.Client, namespace string) *Manager {
-	serverClient := omi.NewClient(redisClient, namespace, omi.Server)
-	mqClient := omi.NewClient(redisClient, namespace, omi.MQ)
-	configClient := omi.NewClient(redisClient, namespace, omi.Config)
+	serverClient := omi.NewServerClient(redisClient, namespace)
+	mqClient := omi.NewMQClient(redisClient, namespace)
+	configClient := omi.NewConfigClient(redisClient, namespace)
 	return &Manager{
 		serverClient:   serverClient,
 		mqClient:       mqClient,
 		configClient:   configClient,
 		serverSearcher: serverClient.NewSearcher(),
-		mqSearcher:     mqClient.NewSearcher(),
+		mqSearcher:     mqClient.GetOmiClient().NewSearcher(),
 		configSearcher: configClient.NewSearcher(),
 		nodeMap:        map[string]Node{},
 	}
 }
 
 func (manager *Manager) GetServerNodes() []Node {
-	return manager.toNodeSlice(omi.Server, manager.serverClient, manager.serverSearcher)
+	return manager.toNodeSlice(server, manager.serverClient, manager.serverSearcher)
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(omi.MQ, manager.mqClient, manager.mqSearcher)
+	return manager.toNodeSlice(mq, manager.mqClient.GetOmiClient(), manager.mqSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
-	return manager.toNodeSlice(omi.Config, manager.configClient, manager.configSearcher)
+	return manager.toNodeSlice(config, manager.configClient, manager.configSearcher)
 }
 
-func (manager *Manager) toNodeSlice(serverType omi.ServerType, omiClient *omi.Client, searcher *omi.Searcher) []Node {
+func (manager *Manager) toNodeSlice(serverType string, omiClient *omiclient.Client, searcher *omiclient.Searcher) []Node {
 	keys := searcher.AllServers()
 	nodes := []Node{}
 
@@ -55,7 +56,7 @@ func (manager *Manager) toNodeSlice(serverType omi.ServerType, omiClient *omi.Cl
 		info := spliteNodeKey(val)
 		node := *newNode(serverType, info[0], info[1], info[2], info[3], omiClient, searcher)
 		nodes = append(nodes, node)
-		manager.nodeMap[info[0]+omi.NamespaceSeparator+info[3]] = node
+		manager.nodeMap[info[0]+":"+info[3]] = node
 	}
 	sort.Slice(nodes, func(i, j int) bool {
 		return nodes[i].ServerName < nodes[j].ServerName
@@ -91,7 +92,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	getNode := func() *Node {
-		key := parts[1] + omi.NamespaceSeparator + parts[2]
+		key := parts[1] + ":" + parts[2]
 		node := manager.nodeMap[key]
 		if node.Address == "" {
 			manager.GetServerNodes()
@@ -136,7 +137,7 @@ func spliteNodeKey(key string) []string {
 }
 
 func split(address string) []string {
-	index := strings.Index(address, omi.NamespaceSeparator)
+	index := strings.Index(address, ":")
 	if index == -1 {
 		return nil
 	}
