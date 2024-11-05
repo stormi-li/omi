@@ -16,7 +16,8 @@ func main() {
 		Password: password,
 	})
 	c := omi.NewServerClient(redisClient, "omi-namespace")
-	for _, val := range c.NewSearcher().SearchStartingServers("user_server") {
+	searcher := c.NewSearcher()
+	for _, val := range searcher.SearchRunningServers("user_server") {
 		fmt.Println(val)
 	}
 }

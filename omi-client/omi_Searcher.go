@@ -31,7 +31,7 @@ func (searcher *Searcher) AllServers() []string {
 }
 
 func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, map[string]string) {
-	addrs := searcher.SearchStartingServers(serverName)
+	addrs := searcher.SearchRunningServers(serverName)
 	var validAddr string
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
@@ -59,7 +59,7 @@ func (searcher *Searcher) Listen(serverName string, handler func(address string,
 	}
 }
 
-func (searcher *Searcher) SearchStartingServers(serverName string) []string {
+func (searcher *Searcher) SearchRunningServers(serverName string) []string {
 	servers := searcher.SearchAllServers(serverName)
 	startingservers := []string{}
 	for _, val := range servers {

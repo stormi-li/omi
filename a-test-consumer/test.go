@@ -20,5 +20,4 @@ func main() {
 	consumer.StartOnMain(1000000, func(message []byte) {
 		fmt.Println(string(message))
 	})
-
 }
