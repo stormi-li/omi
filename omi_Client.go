@@ -2,7 +2,6 @@ package omi
 
 import (
 	"context"
-	"sync"
 
 	"github.com/go-redis/redis/v8"
 	omipc "github.com/stormi-li/omi/omi-ipc"
@@ -28,7 +27,6 @@ func (c *Client) NewRegister(serverName string, address string) *Register {
 		ctx:         context.Background(),
 		address:     address,
 		channel:     serverName + const_separator + address,
-		CloseSignal: make(chan struct{}, 1),
 	}
 }
 
@@ -46,13 +44,10 @@ func (c *Client) NewConsumer(channel string, address string) *Consumer {
 		panic("server type must be mq")
 	}
 	return &Consumer{
-		omiClient:   c,
-		channel:     channel,
-		address:     address,
-		messageChan: make(chan []byte, 1000),
-		buffer:      [][]byte{},
-		bufferLock:  sync.Mutex{},
-		Register:    c.NewRegister(channel, address),
+		omiClient: c,
+		channel:   channel,
+		address:   address,
+		Register:  c.NewRegister(channel, address),
 	}
 }
 
@@ -61,13 +56,9 @@ func (c *Client) NewProducer(channel string) *Producer {
 		panic("server type must be mq")
 	}
 	producer := Producer{
-		omiClient:  c,
-		maxRetries: 10,
-		channel:    channel,
+		omiClient: c,
+		channel:   channel,
 	}
-	go producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
-		producer.address = addr
-		producer.connect()
-	})
+	go producer.listen()
 	return &producer
 }

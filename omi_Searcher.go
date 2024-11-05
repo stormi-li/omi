@@ -46,9 +46,7 @@ func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, m
 func (searcher *Searcher) GetData(serverName, state, nodeType, address string) map[string]string {
 	key := searcher.namespace + serverName + const_separator + state + const_separator + nodeType + const_separator + address
 	data, _ := searcher.redisClient.Get(searcher.ctx, key).Result()
-	var dataMap map[string]string
-	json.Unmarshal([]byte(data), &dataMap)
-	return dataMap
+	return jsonStrToMap(data)
 }
 
 func (searcher *Searcher) Listen(serverName string, handler func(address string, data map[string]string)) {
@@ -64,7 +62,7 @@ func (searcher *Searcher) Listen(serverName string, handler func(address string,
 			dataStr = newDataStr
 			handler(addr, searcher.data)
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(const_listenWaitTime)
 	}
 }
 

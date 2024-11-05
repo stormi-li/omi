@@ -9,13 +9,10 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var redisAddr = "118.25.196.166:3934"
-var password = "12982397StrongPassw0rd"
-
 //go:embed src/*
 var embedSource embed.FS
 
-func Start(redisClient *redis.Client,address string) {
+func Start(redisClient *redis.Client, address string) {
 
 	managerMap := map[string]*Manager{}
 

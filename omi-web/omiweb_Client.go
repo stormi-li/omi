@@ -76,6 +76,5 @@ func (omiweb *Client) start(embedSources ...embed.FS) {
 	register := omiweb.omiClient.NewRegister(omiweb.serverName, omiweb.address)
 	go register.StartOnMain(map[string]string{"omi web server": omiweb.serverName})
 
-	go http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
-	<-register.CloseSignal
+	http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
 }

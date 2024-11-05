@@ -5,32 +5,14 @@ import (
 	"log"
 	"net"
 	"strings"
-	"sync"
 )
 
 type Consumer struct {
 	omiClient   *Client
 	channel     string
 	address     string
-	listener    net.Listener
 	messageChan chan []byte
-	buffer      [][]byte
-	bufferLock  sync.Mutex
 	Register    *Register
-}
-
-func (consumer *Consumer) SetCapacity(capacity int) {
-	consumer.messageChan = make(chan []byte, capacity)
-}
-
-func (consumer *Consumer) startListen() {
-	for {
-		conn, err := consumer.listener.Accept()
-		if err != nil {
-			continue
-		}
-		go consumer.handleConnection(conn)
-	}
 }
 
 func (consumer *Consumer) handleConnection(conn net.Conn) {
@@ -66,70 +48,44 @@ func (consumer *Consumer) handleConnection(conn net.Conn) {
 
 			// 4. 提取完整的消息体
 			messageBuf := tempBuffer[4:totalLength]
-			// 发送完整消息到消息通道，或放入缓冲区
-			consumer.bufferLock.Lock()
-			for len(consumer.buffer) > 0 {
-				flag := false
-				select {
-				case consumer.messageChan <- consumer.buffer[0]: // 非阻塞写入
-					// 发送成功后删除缓冲区中的消息
-					consumer.buffer = consumer.buffer[1:]
-				default:
-					flag = true
-				}
-				if flag {
-					break
-				}
-			}
-			select {
-			case consumer.messageChan <- messageBuf:
-			default:
-				consumer.buffer = append(consumer.buffer, messageBuf)
-			}
-			consumer.bufferLock.Unlock()
 
-			// 5. 从缓存中移除已处理的消息
+			// 5. 放入消息队列
+			consumer.messageChan <- messageBuf
+
+			// 6. 从缓存中移除已处理的消息
 			tempBuffer = tempBuffer[totalLength:]
 		}
 	}
 }
 
-func (consumer *Consumer) StartOnMain(handler func(message []byte)) {
+func (consumer *Consumer) StartOnMain(capacity int, handler func(message []byte)) {
 	go consumer.Register.StartOnMain(map[string]string{"server type": "MQ"})
-	consumer.start(handler)
+	consumer.start(capacity, handler)
 }
 
-func (consumer *Consumer) StartOnBackup(handler func(message []byte)) {
+func (consumer *Consumer) StartOnBackup(capacity int, handler func(message []byte)) {
 	go consumer.Register.StartOnBackup(map[string]string{"server type": "MQ"})
-	consumer.start(handler)
+	consumer.start(capacity, handler)
 }
 
-func (consumer *Consumer) ToMain() {
-	consumer.Register.ToMain()
-}
-
-func (consumer *Consumer) ToBackup() {
-	consumer.Register.ToBackup()
-}
-
-func (consumer *Consumer) start(handler func(message []byte)) {
-	listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
-	if err != nil {
-		panic(err)
-	}
-	consumer.listener = listener
-	close := false
-	log.Println("omi consumer server: " + consumer.channel + " is running on " + consumer.address)
-	go consumer.startListen()
+func (consumer *Consumer) start(capacity int, handler func(message []byte)) {
+	consumer.messageChan = make(chan []byte, capacity)
+	go func() {
+		listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
+		if err != nil {
+			panic(err)
+		}
+		log.Println("omi consumer server: " + consumer.channel + " is running on " + consumer.address)
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				continue
+			}
+			go consumer.handleConnection(conn)
+		}
+	}()
 	for {
-		if close && len(consumer.messageChan) == 0 {
-			return
-		}
-		select {
-		case msg := <-consumer.messageChan:
-			handler(msg)
-		case <-consumer.Register.CloseSignal:
-			close = true
-		}
+		msg := <-consumer.messageChan
+		handler(msg)
 	}
 }

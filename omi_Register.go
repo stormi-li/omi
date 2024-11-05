@@ -19,85 +19,57 @@ type Register struct {
 	nodeType    string
 	address     string
 	channel     string
-	CloseSignal chan struct{}
 }
 
 func (register *Register) StartOnMain(data map[string]string) {
-	register.start(node_main, data)
+	register.start(nodeType_main, data)
 }
 
 func (register *Register) StartOnBackup(data map[string]string) {
-	register.start(node_backup, data)
+	register.start(nodeType_backup, data)
 }
 
 func (register *Register) start(nodeType string, data map[string]string) {
 	jsonByte, _ := json.MarshalIndent(data, " ", "  ")
-	jsonStr := string(jsonByte)
+	jsonStrData := string(jsonByte)
 	register.nodeType = nodeType
 	nodeState := state_start
-	ticker := time.NewTicker(const_expireTime / 2)
-	close := make(chan struct{}, 1)
-	update := make(chan struct{}, 1)
-
-	updateHandler := func() {
-		key := register.namespace + register.serverName + const_separator + nodeState + const_separator + nodeType + const_separator + register.address
-		register.redisClient.Set(register.ctx, key, jsonStr, const_expireTime)
-	}
 
 	go func() {
 		for {
-			select {
-			case <-ticker.C:
-				updateHandler()
-			case <-update:
-				updateHandler()
-			case <-close:
-				return
-			}
+			key := register.namespace + register.serverName + const_separator + nodeState + const_separator + nodeType + const_separator + register.address
+			register.redisClient.Set(register.ctx, key, jsonStrData, const_expireTime)
+			time.Sleep(const_expireTime / 2)
 		}
 	}()
 	log.Println("register server for", register.serverName+"["+register.address+"]", "is starting")
 	channel := register.serverName + const_separator + register.address
 	listener := register.omipcClient.NewListener(channel)
 	listener.Listen(func(msg string) {
-		if msg == command_close {
-			close <- struct{}{}
-			register.CloseSignal <- struct{}{}
-			listener.Close()
-		}
 		if msg == command_start {
 			nodeState = state_start
-			update <- struct{}{}
 		}
 		if msg == command_stop {
 			nodeState = state_stop
-			update <- struct{}{}
 		}
-		if msg == command_main {
-			nodeType = node_main
-			update <- struct{}{}
+		if msg == command_toMain {
+			nodeType = nodeType_main
 		}
-		if msg == command_backup {
-			nodeType = node_backup
-			update <- struct{}{}
+		if msg == command_toBackup {
+			nodeType = nodeType_backup
 		}
 		if command, json := splitCommand(msg); command == command_updateNodeData {
-			jsonStr = json
-			update <- struct{}{}
+			jsonStrData = json
 		}
 	})
 }
 
 func (register *Register) ToMain() {
-	register.omipcClient.Notify(register.channel, command_main)
+	register.omipcClient.Notify(register.channel, command_toMain)
 }
 
 func (register *Register) ToBackup() {
-	register.omipcClient.Notify(register.channel, command_backup)
-}
-
-func (register *Register) Close() {
-	register.omipcClient.Notify(register.channel, command_close)
+	register.omipcClient.Notify(register.channel, command_toBackup)
 }
 
 func (register *Register) Start() {
@@ -109,6 +81,5 @@ func (register *Register) Stop() {
 }
 
 func (register *Register) UpdateData(data map[string]string) {
-	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
-	register.omipcClient.Notify(register.channel, command_updateNodeData+":"+string(jsonStr))
+	register.omipcClient.Notify(register.channel, command_updateNodeData+":"+mapToJsonStr(data))
 }

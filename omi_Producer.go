@@ -8,11 +8,10 @@ import (
 )
 
 type Producer struct {
-	omiClient  *Client
-	channel    string
-	maxRetries int
-	address    string
-	conn       net.Conn
+	omiClient *Client
+	channel   string
+	address   string
+	conn      net.Conn
 }
 
 func (producer *Producer) connect() error {
@@ -28,25 +27,16 @@ func (producer *Producer) connect() error {
 	return err
 }
 
-func (producer *Producer) SetMaxRetries(maxRetries int) {
-	producer.maxRetries = maxRetries
+func (producer *Producer) listen() {
+	producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
+		producer.address = addr
+		producer.connect()
+	})
 }
 
 func (producer *Producer) Publish(message []byte) error {
 	var err error
 	retryCount := 0
-	for producer.conn == nil {
-		err = producer.connect()
-		if err == nil {
-			break
-		}
-		time.Sleep(const_waitTime)
-		if retryCount == producer.maxRetries {
-			return err
-		}
-		retryCount++
-	}
-	retryCount = 0
 
 	//长度前缀协议
 	byteMessage := []byte(string(message))
@@ -57,19 +47,17 @@ func (producer *Producer) Publish(message []byte) error {
 
 	for {
 		if producer.conn != nil {
-			_, err = producer.conn.Write(append(lengthBuf, byteMessage...))
-		} else {
-			err = fmt.Errorf("")
+			if _, err = producer.conn.Write(append(lengthBuf, byteMessage...)); err == nil {
+				break
+			}
+		}
+		if producer.conn == nil {
+			err = producer.connect()
 		}
 		if err != nil {
-			err = producer.connect()
-			if err != nil {
-				time.Sleep(const_waitTime)
-			}
-		} else {
-			return nil
+			time.Sleep(const_retryWaitTime)
 		}
-		if retryCount == producer.maxRetries {
+		if retryCount == const_maxRetryCount {
 			break
 		}
 		retryCount++

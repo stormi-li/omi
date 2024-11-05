@@ -16,11 +16,10 @@
     </div>
     <script type="module">
         import { createApp } from "./vue.esm-browser.js"
-        import { omi_request_prefix } from "./omi.js"
         createApp({
             setup() {
                 return {
-                    msg: omi_request_prefix
+                    msg: "window.location.host/omirequest"
                 }
             }
         }).mount("#app")

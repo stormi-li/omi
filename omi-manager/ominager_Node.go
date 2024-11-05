@@ -32,25 +32,14 @@ func newNode(serverType omi.ServerType, serverName, state, nodeType, address str
 	}
 }
 
-func (node *Node) GetData() (map[string]string, string) {
-	data := node.searcher.GetData(node.ServerName, node.State, node.NodeType, node.Address)
-	jsonByte, _ := json.MarshalIndent(data, " ", "  ")
-	return data, string(jsonByte)
-}
-
 func (node *Node) ToMain() {
-	node.NodeType = node_main
+	node.NodeType = nodeType_main
 	node.register.ToMain()
 }
 
 func (node *Node) ToBackup() {
-	node.NodeType = node_standby
+	node.NodeType = nodeType_backup
 	node.register.ToBackup()
-}
-
-func (node *Node) Close() {
-	node.State = state_close
-	node.register.Close()
 }
 
 func (node *Node) Start() {
@@ -61,10 +50,6 @@ func (node *Node) Start() {
 func (node *Node) Stop() {
 	node.State = state_stop
 	node.register.Stop()
-}
-
-func (node *Node) UpdateData(data map[string]string) {
-	node.register.UpdateData(data)
 }
 
 func (node *Node) ToString() string {

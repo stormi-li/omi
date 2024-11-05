@@ -16,8 +16,8 @@ func main() {
 		Password: password,
 	})
 	client := omi.NewClient(redisClient, "omi-namespace", omi.MQ)
-	consumer := client.NewConsumer("consumer_test", "118.25.196.166:4444")
-	consumer.StartOnMain(func(message []byte) {
+	consumer := client.NewConsumer("consumer_test", "118.25.196.166:4442")
+	consumer.StartOnBackup(1000000, func(message []byte) {
 		fmt.Println(string(message))
 	})
 

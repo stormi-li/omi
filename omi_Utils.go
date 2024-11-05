@@ -2,10 +2,22 @@ package omi
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/go-redis/redis/v8"
 )
+
+func mapToJsonStr(data map[string]string) string {
+	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
+	return string(jsonStr)
+}
+
+func jsonStrToMap(jsonStr string) map[string]string {
+	var dataMap map[string]string
+	json.Unmarshal([]byte(jsonStr), &dataMap)
+	return dataMap
+}
 
 func splitCommand(address string) (string, string) {
 	index := strings.Index(address, const_separator)

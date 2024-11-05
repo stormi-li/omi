@@ -20,6 +20,14 @@ type Manager struct {
 	nodeMap        map[string]Node
 }
 
+func (manager *Manager) Start(managerName, address string) {
+	register := manager.serverClient.NewRegister(managerName, address)
+	go register.StartOnMain(map[string]string{"message": "omi manager server"})
+	http.HandleFunc("/", manager.Handler)
+	log.Println("omi manager server: " + managerName + " is running on http://" + address)
+	http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
+}
+
 func NewManager(redisClient *redis.Client, namespace string) *Manager {
 	serverClient := omi.NewClient(redisClient, namespace, omi.Server)
 	mqClient := omi.NewClient(redisClient, namespace, omi.MQ)
@@ -136,11 +144,6 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		return &node
 	}
 
-	// if parts[0] == "GetNodeData" {
-	// 	node := getNode()
-	// 	_, data := node.GetData()
-	// 	w.Write([]byte(data))
-	// }
 	if parts[0] == "ToMain" {
 		node := getNode()
 		node.ToMain()
@@ -161,18 +164,4 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		node.Start()
 		w.Write([]byte(node.ToString()))
 	}
-	// if parts[0] == "Close" {
-	// 	node := getNode()
-	// 	node.Close()
-	// 	w.Write([]byte(node.ToString()))
-	// }
-}
-
-func (manager *Manager) Start(managerName, address string) {
-	register := manager.serverClient.NewRegister(managerName, address)
-	go register.StartOnMain(map[string]string{"message": "omi manager server"})
-	http.HandleFunc("/", manager.Handler)
-	log.Println("omi manager server: " + managerName + " is running on http://" + address)
-	go http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
-	<-register.CloseSignal
 }

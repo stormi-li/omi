@@ -96,14 +96,14 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-1-用于处理user消息非常重要---------------------------", "118.25.196.166:8899")
-		consumer.StartOnBackup(func(message []byte) {
+		consumer.StartOnBackup(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-1-用于处理user消息非常重要---------------------------", "118.25.196.166:8890")
-		consumer.StartOnBackup(func(message []byte) {
+		consumer.StartOnBackup(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
@@ -114,7 +114,7 @@ func main() {
 			time.Sleep(1 * time.Second)
 			consumer.Register.Stop()
 		}()
-		consumer.StartOnMain(func(message []byte) {
+		consumer.StartOnMain(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 
@@ -122,14 +122,14 @@ func main() {
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-2", "118.25.196.166:8888")
-		consumer.StartOnBackup(func(message []byte) {
+		consumer.StartOnBackup(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
 	go func() {
 		client := omi.NewClient(omiClient, "omi-namespace", omi.MQ)
 		consumer := client.NewConsumer("channel-2", "118.25.196.166:8889")
-		consumer.StartOnMain(func(message []byte) {
+		consumer.StartOnMain(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
@@ -140,7 +140,7 @@ func main() {
 			time.Sleep(1 * time.Second)
 			consumer.Register.Stop()
 		}()
-		consumer.StartOnMain(func(message []byte) {
+		consumer.StartOnMain(1000000, func(message []byte) {
 			fmt.Println(string(message))
 		})
 	}()
