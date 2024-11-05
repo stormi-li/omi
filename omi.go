@@ -2,7 +2,7 @@ package omi
 
 import (
 	"github.com/go-redis/redis/v8"
-	omiclient "github.com/stormi-li/omi/omi_Client"
+	omiclient "github.com/stormi-li/omi/omi_client"
 )
 
 func NewServerClient(redisClient *redis.Client, namespace string) *omiclient.Client {

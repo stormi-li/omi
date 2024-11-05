@@ -3,7 +3,7 @@ package ominager
 import (
 	"encoding/json"
 
-	omiclient "github.com/stormi-li/omi/omi_Client"
+	omiclient "github.com/stormi-li/omi/omi_client"
 )
 
 type Node struct {
