@@ -8,7 +8,3 @@ const command_GetMQNodes = "GetMQNodes"
 const command_GetServerNodes = "GetServerNodes"
 const command_GetConfigNodes = "GetConfigNodes"
 const command_GetAllNodes = "GetAllNodes"
-
-var server = "Server"
-var mq = "MQ"
-var config = "Config"

@@ -37,15 +37,15 @@ func NewManager(redisClient *redis.Client, namespace string) *Manager {
 }
 
 func (manager *Manager) GetServerNodes() []Node {
-	return manager.toNodeSlice(server, manager.serverClient, manager.serverSearcher)
+	return manager.toNodeSlice(omiclient.Server, manager.serverClient, manager.serverSearcher)
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(mq, manager.mqClient.GetOmiClient(), manager.mqSearcher)
+	return manager.toNodeSlice(omiclient.MQ, manager.mqClient.GetOmiClient(), manager.mqSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
-	return manager.toNodeSlice(config, manager.configClient, manager.configSearcher)
+	return manager.toNodeSlice(omiclient.Config, manager.configClient, manager.configSearcher)
 }
 
 func (manager *Manager) toNodeSlice(serverType string, omiClient *omiclient.Client, searcher *omiclient.Searcher) []Node {

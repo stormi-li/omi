@@ -17,3 +17,12 @@ const const_maxRetryCount = 10
 const const_expireTime = 2 * time.Second
 
 const const_listenWaitTime = 1 * time.Second
+
+const Prefix_Config = "stormi:config:"
+const Prefix_Server = "stormi:server:"
+const Prefix_MQ = "stormi:mq:"
+
+
+var Server  = "Server"
+var MQ  = "MQ"
+var Config  = "Config"
