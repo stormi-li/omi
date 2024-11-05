@@ -59,6 +59,9 @@ func (c *Client) NewProducer(channel string) *Producer {
 		omiClient: c,
 		channel:   channel,
 	}
-	go producer.listen()
+	go producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
+		producer.address = addr
+		producer.connect()
+	})
 	return &producer
 }

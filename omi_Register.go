@@ -22,11 +22,11 @@ type Register struct {
 }
 
 func (register *Register) StartOnMain(data map[string]string) {
-	register.start(nodeType_main, data)
+	register.start(node_main, data)
 }
 
 func (register *Register) StartOnBackup(data map[string]string) {
-	register.start(nodeType_backup, data)
+	register.start(node_backup, data)
 }
 
 func (register *Register) start(nodeType string, data map[string]string) {
@@ -53,10 +53,10 @@ func (register *Register) start(nodeType string, data map[string]string) {
 			nodeState = state_stop
 		}
 		if msg == command_toMain {
-			nodeType = nodeType_main
+			nodeType = node_main
 		}
 		if msg == command_toBackup {
-			nodeType = nodeType_backup
+			nodeType = node_backup
 		}
 		if command, json := splitCommand(msg); command == command_updateNodeData {
 			jsonStrData = json
