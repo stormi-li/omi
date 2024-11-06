@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"net/http"
 
 	"github.com/go-redis/redis/v8"
 	omiweb "github.com/stormi-li/omi/omi-web"
@@ -18,6 +19,9 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiweb := omiweb.NewClient(redisClient, "omi-namespace", "web-server", "118.25.196.166:7788")
-	omiweb.Start(embedSource)
+	omiwebC := omiweb.NewClient(redisClient, "omi-namespace", "web-server", "118.25.196.166:7788")
+	omiwebC.SetOriginCheckHandler(func(r *http.Request) bool {
+		return r.URL.Path != "/wss"
+	})
+	omiwebC.Start()
 }

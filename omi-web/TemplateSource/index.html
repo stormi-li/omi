@@ -11,19 +11,10 @@
     <h1>welcome use omi !</h1>
     <div id="app">
         <p>
-            request prefix: {{msg}}
+            request prefix: window.location.host/omirequest <br>
+            websocket prefix: window.location.host/omiwebsocket
         </p>
     </div>
-    <script type="module">
-        import { createApp } from "./vue.esm-browser.js"
-        createApp({
-            setup() {
-                return {
-                    msg: "window.location.host/omirequest"
-                }
-            }
-        }).mount("#app")
-    </script>
 </body>
 
 </html>

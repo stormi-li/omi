@@ -11,18 +11,33 @@
     <h1>welcome use omi !</h1>
     <div id="app">
         <p>
-            use request prefix: {{msg}} 
+            request prefix: window.location.host/omirequest <br>
+            websocket prefix: window.location.host/omiwebsocket
         </p>
     </div>
     <script type="module">
-        import { createApp } from "./vue.esm-browser.js"
-        createApp({
-            setup() {
-                return {
-                    msg: "window.location.host/omirequest"
-                }
-            }
-        }).mount("#app")
+        const socket = new WebSocket("http://" + window.location.host + "/omiwebsocket" + "/websocketserver" + "/ws");
+
+        // 连接成功后触发
+        socket.onopen = function () {
+            console.log("WebSocket connection established");
+            socket.send("Hello Server!");
+        };
+
+        // 接收到消息时触发
+        socket.onmessage = function (event) {
+            console.log("Message from server:", event.data);
+        };
+
+        // 连接关闭时触发
+        socket.onclose = function () {
+            console.log("WebSocket connection closed");
+        };
+
+        // 发生错误时触发
+        socket.onerror = function (error) {
+            console.log("WebSocket error:", error);
+        };
     </script>
 </body>
 

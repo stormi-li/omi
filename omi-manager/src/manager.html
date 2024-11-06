@@ -182,16 +182,6 @@
                 this.nodeType = NodeType;
                 this.address = Address;
             }
-
-            // 判断服务器是否停止
-            isStopped() {
-                return this.state === 'stop';
-            }
-
-            // 获取服务器的描述
-            getDescription() {
-                return `${this.serverType} Server "${this.serverName}" is currently ${this.state} at ${this.address}`;
-            }
         }
 
         function changeContent(type) {

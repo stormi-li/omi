@@ -9,31 +9,30 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/websocket"
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Client struct {
-	router      *Router
-	redisClient *redis.Client
-	omiClient   *omiclient.Client
-	serverName  string
-	namespace   string
-	address     string
+	router             *Router
+	redisClient        *redis.Client
+	omiClient          *omiclient.Client
+	serverName         string
+	namespace          string
+	address            string
+	originCheckHandler func(r *http.Request) bool
+	upgrader           websocket.Upgrader
 }
 
 func (omiweb *Client) GenerateTemplate() {
 	copyResource(getSourceFilePath() + "/TemplateSource")
 }
 
-func (omiweb *Client) Live() {
-	omiweb.start()
+func (omiweb *Client) SetOriginCheckHandler(handler func(r *http.Request) bool) {
+	omiweb.upgrader.CheckOrigin = handler
 }
 
-func (omiweb *Client) Start(embedSource embed.FS) {
-	omiweb.start(embedSource)
-}
-
-func (omiweb *Client) start(embedSources ...embed.FS) {
+func (omiweb *Client) Start(embedSources ...embed.FS) {
 	var embedSource embed.FS
 	embedModel := false
 	if len(embedSources) > 0 {
@@ -60,7 +59,11 @@ func (omiweb *Client) start(embedSources ...embed.FS) {
 		part := strings.Split(r.URL.Path, "/")
 
 		if len(part) > 1 && part[1] == const_omirequest {
-			omiweb.forwardHandler(w, r)
+			omiweb.requestForwardHandler(w, r)
+			return
+		}
+		if len(part) > 1 && part[1] == const_omiwebsocket {
+			omiweb.websocketForwardHandler(w, r)
 			return
 		}
 
@@ -80,27 +83,37 @@ func (omiweb *Client) start(embedSources ...embed.FS) {
 	http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
 }
 
-func (omiweb *Client) forwardHandler(w http.ResponseWriter, r *http.Request) {
+func (omiweb *Client) getTargetURL(r *http.Request) string {
 	path := strings.TrimPrefix(r.URL.Path, "/")
-	// 以 '/' 分割路径，获取第一个参数
 	parts := strings.Split(path, "/")
+	path = getStringAfterSecondSlash(path)
 
+	r.URL.Path = "/" + path
+	if !omiweb.originCheckHandler(r) {
+		return ""
+	}
+	if len(parts) < 2 {
+		return ""
+	}
 	address := omiweb.router.getAddress(parts[1])
-
-	//未获取到地址
 	if address == "" {
-		http.Error(w, "未获取到地址:"+parts[1], http.StatusInternalServerError)
+		return ""
+	}
+	return address + "/" + path
+}
+
+func (omiweb *Client) requestForwardHandler(w http.ResponseWriter, r *http.Request) {
+	targetURL := omiweb.getTargetURL(r)
+	if targetURL == "" {
+		http.Error(w, "请求地址不存在或请求非法", http.StatusInternalServerError)
 		return
 	}
-
-	targetURL := address + "/" + getStringAfterSecondSlash(path)
 	// 创建一个 HTTP 请求，将 A 发送给 B 的请求原样转发给 C
 	req, err := http.NewRequest(r.Method, "http://"+targetURL, r.Body)
 	if err != nil {
 		http.Error(w, "无法创建请求", http.StatusInternalServerError)
 		return
 	}
-
 	// 复制请求头，以保持请求的原始头信息
 	req.Header = r.Header
 
@@ -125,4 +138,78 @@ func (omiweb *Client) forwardHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 将 C 的响应体原封不动地返回给 A
 	io.Copy(w, resp.Body)
+}
+
+func (omiweb *Client) websocketForwardHandler(w http.ResponseWriter, r *http.Request) {
+	targetURL := omiweb.getTargetURL(r)
+
+	if targetURL == "" {
+		http.Error(w, "请求地址不存在或请求非法", http.StatusInternalServerError)
+		return
+	}
+	// 与 A 建立 WebSocket 连接
+	clientConn, err := omiweb.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Error upgrading connection:", err)
+		return
+	}
+	defer clientConn.Close()
+
+	// 与 C 建立 WebSocket 连接
+	cConn, _, err := websocket.DefaultDialer.Dial("ws://"+targetURL, nil)
+	if err != nil {
+		log.Println("Error connecting to C:", err)
+		return
+	}
+	defer cConn.Close()
+
+	close := make(chan struct{}, 1)
+	// 将 A 发来的消息转发给 C
+	go forwardToC(clientConn, cConn, close)
+
+	// 将 C 发来的消息转发回 A
+	go forwardToA(cConn, clientConn, close)
+
+	// 阻塞主协程直到连接关闭
+	<-close
+}
+
+// 转发 A 发来的消息给 C
+func forwardToC(aConn, cConn *websocket.Conn, close chan struct{}) {
+	for {
+		_, message, err := aConn.ReadMessage()
+		if err != nil {
+			log.Println("Error reading from A:", err)
+			close <- struct{}{}
+			return
+		}
+
+		// 将消息转发给 C
+		err = cConn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			log.Println("Error forwarding to C:", err)
+			close <- struct{}{}
+			return
+		}
+	}
+}
+
+// 转发 C 发来的消息给 A
+func forwardToA(cConn, aConn *websocket.Conn, close chan struct{}) {
+	for {
+		_, message, err := cConn.ReadMessage()
+		if err != nil {
+			log.Println("Error reading from C:", err)
+			close <- struct{}{}
+			return
+		}
+
+		// 将消息转发给 A
+		err = aConn.WriteMessage(websocket.TextMessage, message)
+		if err != nil {
+			log.Println("Error forwarding to A:", err)
+			close <- struct{}{}
+			return
+		}
+	}
 }
