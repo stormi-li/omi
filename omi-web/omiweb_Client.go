@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
+	"github.com/stormi-li/omi"
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
@@ -75,7 +76,7 @@ func (omiweb *Client) Listen(address string, embedSources ...embed.FS) {
 			http.ServeFile(w, r, "src/"+r.URL.Path)
 		}
 	})
-
+	omi.NewServerClient(omiweb.redisClient, omiweb.namespace).NewRegister("web-server", address).StartOnMain()
 	log.Println("omi web server: " + omiweb.serverName + " is running on http://" + omiweb.address)
 	http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
 }
