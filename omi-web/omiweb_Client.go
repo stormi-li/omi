@@ -32,7 +32,8 @@ func (omiweb *Client) SetOriginCheckHandler(handler func(r *http.Request) bool) 
 	omiweb.upgrader.CheckOrigin = handler
 }
 
-func (omiweb *Client) Start(embedSources ...embed.FS) {
+func (omiweb *Client) Listen(address string, embedSources ...embed.FS) {
+	omiweb.address = address
 	var embedSource embed.FS
 	embedModel := false
 	if len(embedSources) > 0 {
@@ -76,10 +77,6 @@ func (omiweb *Client) Start(embedSources ...embed.FS) {
 	})
 
 	log.Println("omi web server: " + omiweb.serverName + " is running on http://" + omiweb.address)
-
-	register := omiweb.omiClient.NewRegister(omiweb.serverName, omiweb.address)
-	go register.StartOnMain(map[string]string{"omi web server": omiweb.serverName})
-
 	http.ListenAndServe(":"+strings.Split(omiweb.address, ":")[1], nil)
 }
 

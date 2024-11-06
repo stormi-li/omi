@@ -13,12 +13,7 @@ import (
 )
 
 // 设置 WebSocket 升级器
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		// 在此可以添加允许的 Origin 校验
-		return true
-	},
-}
+var upgrader = websocket.Upgrader{}
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	// 升级 HTTP 请求为 WebSocket 连接
@@ -64,7 +59,7 @@ func main() {
 		Password: password,
 	})
 	omiClient := omi.NewServerClient(redisClient, "omi-namespace")
-	go omiClient.NewRegister("websocketserver", "118.25.196.166:8181").StartOnMain()
+	omiClient.NewRegister("websocketserver", "118.25.196.166:8181").StartOnMain()
 	// 启动 HTTP 服务器
 	log.Println("WebSocket server started at ws://localhost:8181")
 	if err := http.ListenAndServe(":8181", nil); err != nil {

@@ -19,9 +19,9 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiwebC := omiweb.NewClient(redisClient, "omi-namespace", "web-server", "118.25.196.166:7788")
+	omiwebC := omiweb.NewClient(redisClient, "omi-namespace")
 	omiwebC.SetOriginCheckHandler(func(r *http.Request) bool {
 		return r.URL.Path != "/wss"
 	})
-	omiwebC.Start()
+	omiwebC.Listen("118.25.196.166:7788")
 }
