@@ -147,7 +147,7 @@ func (omiweb *Client) websocketForwardHandler(w http.ResponseWriter, r *http.Req
 	// 与 A 建立 WebSocket 连接
 	clientConn, err := omiweb.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Error upgrading connection:", err)
+		log.Println("与前端建立websocket连接失败:", err)
 		return
 	}
 	defer clientConn.Close()
@@ -155,7 +155,7 @@ func (omiweb *Client) websocketForwardHandler(w http.ResponseWriter, r *http.Req
 	// 与 C 建立 WebSocket 连接
 	cConn, _, err := websocket.DefaultDialer.Dial("ws://"+targetURL, nil)
 	if err != nil {
-		log.Println("Error connecting to C:", err)
+		log.Println("与服务端建立websocket连接失败:", err)
 		return
 	}
 	defer cConn.Close()
@@ -176,7 +176,6 @@ func forwardToC(aConn, cConn *websocket.Conn, close chan struct{}) {
 	for {
 		_, message, err := aConn.ReadMessage()
 		if err != nil {
-			log.Println("Error reading from A:", err)
 			close <- struct{}{}
 			return
 		}
@@ -184,7 +183,6 @@ func forwardToC(aConn, cConn *websocket.Conn, close chan struct{}) {
 		// 将消息转发给 C
 		err = cConn.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
-			log.Println("Error forwarding to C:", err)
 			close <- struct{}{}
 			return
 		}
@@ -196,7 +194,6 @@ func forwardToA(cConn, aConn *websocket.Conn, close chan struct{}) {
 	for {
 		_, message, err := cConn.ReadMessage()
 		if err != nil {
-			log.Println("Error reading from C:", err)
 			close <- struct{}{}
 			return
 		}
@@ -204,7 +201,6 @@ func forwardToA(cConn, aConn *websocket.Conn, close chan struct{}) {
 		// 将消息转发给 A
 		err = aConn.WriteMessage(websocket.TextMessage, message)
 		if err != nil {
-			log.Println("Error forwarding to A:", err)
 			close <- struct{}{}
 			return
 		}

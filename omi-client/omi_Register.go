@@ -23,6 +23,7 @@ type Register struct {
 func (register *Register) StartOnMain(data ...map[string]string) {
 	if len(data) == 0 {
 		go register.start(node_main, map[string]string{})
+		return
 	}
 	go register.start(node_main, data[0])
 }
