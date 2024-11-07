@@ -1,8 +1,6 @@
 package main
 
 import (
-	"embed"
-
 	"github.com/go-redis/redis/v8"
 	omiweb "github.com/stormi-li/omi/omi-web"
 )
@@ -10,14 +8,13 @@ import (
 var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
-//go:embed src/*
-var embedSource embed.FS
-
 func main() {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiwebC := omiweb.NewClient(redisClient, "omi-namespace")
-	omiwebC.Listen("118.25.196.166:7788")
+	omiwebC := omiweb.NewClient(redisClient, "omi-chat")
+	omiwebC.GenerateTemplate()
+	omiwebC.Listen("118.25.196.166:9911")
+
 }

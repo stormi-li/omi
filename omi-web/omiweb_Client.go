@@ -15,23 +15,20 @@ import (
 )
 
 type Client struct {
-	router             *Router
-	redisClient        *redis.Client
-	omiClient          *omiclient.Client
-	serverName         string
-	namespace          string
-	address            string
-	originCheckHandler func(r *http.Request) bool
-	upgrader           websocket.Upgrader
+	router      *Router
+	redisClient *redis.Client
+	omiClient   *omiclient.Client
+	serverName  string
+	namespace   string
+	address     string
+	upgrader    websocket.Upgrader
 }
 
 func (omiweb *Client) GenerateTemplate() {
 	copyResource(getSourceFilePath() + "/TemplateSource")
 }
 
-func (omiweb *Client) SetOriginCheckHandler(handler func(r *http.Request) bool) {
-	omiweb.upgrader.CheckOrigin = handler
-}
+
 
 func (omiweb *Client) Listen(address string, embedSources ...embed.FS) {
 	omiweb.address = address
@@ -86,10 +83,6 @@ func (omiweb *Client) getTargetURL(r *http.Request) string {
 	parts := strings.Split(path, "/")
 	path = getStringAfterSecondSlash(path)
 
-	r.URL.Path = "/" + path
-	if !omiweb.originCheckHandler(r) {
-		return ""
-	}
 	if len(parts) < 2 {
 		return ""
 	}

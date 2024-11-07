@@ -17,6 +17,15 @@ func Start(redisClient *redis.Client, address string) {
 	managerMap := map[string]*Manager{}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // 使用 "*" 允许所有域
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		if r.URL.Path == "/" {
 			// 读取 index.html 文件
 			data, err := embedSource.ReadFile("src/index.html")
@@ -39,6 +48,7 @@ func Start(redisClient *redis.Client, address string) {
 		}
 
 		r.URL.Path = "src" + r.URL.Path
+
 		http.FileServer(http.FS(embedSource)).ServeHTTP(w, r)
 	})
 

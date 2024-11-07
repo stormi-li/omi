@@ -13,24 +13,24 @@ import (
 
 type Manager struct {
 	serverClient   *omiclient.Client
-	mqClient       *omiclient.MQClient
+	webClient      *omiclient.Client
 	configClient   *omiclient.Client
 	serverSearcher *omiclient.Searcher
-	mqSearcher     *omiclient.Searcher
+	webSearcher    *omiclient.Searcher
 	configSearcher *omiclient.Searcher
 	nodeMap        map[string]Node
 }
 
 func NewManager(redisClient *redis.Client, namespace string) *Manager {
 	serverClient := omi.NewServerClient(redisClient, namespace)
-	mqClient := omi.NewMQClient(redisClient, namespace)
+	webClient := omi.NewWebClient(redisClient, namespace)
 	configClient := omi.NewConfigClient(redisClient, namespace)
 	return &Manager{
 		serverClient:   serverClient,
-		mqClient:       mqClient,
+		webClient:      webClient,
 		configClient:   configClient,
 		serverSearcher: serverClient.NewSearcher(),
-		mqSearcher:     mqClient.GetOmiClient().NewSearcher(),
+		webSearcher:    webClient.NewSearcher(),
 		configSearcher: configClient.NewSearcher(),
 		nodeMap:        map[string]Node{},
 	}
@@ -41,7 +41,7 @@ func (manager *Manager) GetServerNodes() []Node {
 }
 
 func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(omiclient.MQ, manager.mqClient.GetOmiClient(), manager.mqSearcher)
+	return manager.toNodeSlice(omiclient.MQ, manager.webClient, manager.webSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {

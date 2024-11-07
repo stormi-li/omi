@@ -151,7 +151,7 @@
     <div class="nav-bar">
         <span class="nav-item active" onclick="changeContent('All')">All</span>
         <span class="nav-item" onclick="changeContent('Server')">Server</span>
-        <span class="nav-item" onclick="changeContent('MQ')">MQ</span>
+        <span class="nav-item" onclick="changeContent('Web')">Web</span>
         <span class="nav-item" onclick="changeContent('Config')">Config</span>
     </div>
 
@@ -201,8 +201,8 @@
             if (type == "Server") {
                 request = "GetServerNodes"
             }
-            if (type == "MQ") {
-                request = "GetMQNodes"
+            if (type == "Web") {
+                request = "GetWebNodes"
             }
             if (type == "Config") {
                 request = "GetConfigNodes"

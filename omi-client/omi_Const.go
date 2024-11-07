@@ -20,7 +20,9 @@ const const_listenWaitTime = 1 * time.Second
 const Prefix_Config = "stormi:config:"
 const Prefix_Server = "stormi:server:"
 const Prefix_MQ = "stormi:mq:"
+const Prefix_Web = "stormi:web:"
 
 var Server = "Server"
 var MQ = "MQ"
 var Config = "Config"
+var Web = "Config"
