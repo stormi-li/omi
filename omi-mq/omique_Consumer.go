@@ -1,32 +1,34 @@
-package omiclient
+package omique
 
 import (
 	"encoding/binary"
 	"log"
 	"net"
 	"strings"
+
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Consumer struct {
-	omiClient   *Client
+	omiClient   *omiclient.Client
 	channel     string
 	address     string
 	messageChan chan []byte
-	register    *Register
 }
 
-func (consumer *Consumer) StartOnMain(capacity int, handler func(message []byte)) {
-	go consumer.register.StartOnMain(map[string]string{"server type": "MQ"})
-	consumer.start(capacity, handler)
+func (consumer *Consumer) ListenOnMain(address string, handler func(message []byte)) {
+	consumer.address = address
+	go consumer.omiClient.NewRegister(consumer.channel, address).StartOnMain(map[string]string{"server type": "MQ"})
+	consumer.start(handler)
 }
 
-func (consumer *Consumer) StartOnBackup(capacity int, handler func(message []byte)) {
-	go consumer.register.StartOnBackup(map[string]string{"server type": "MQ"})
-	consumer.start(capacity, handler)
+func (consumer *Consumer) ListenOnBackup(address string, handler func(message []byte)) {
+	consumer.address = address
+	go consumer.omiClient.NewRegister(consumer.channel, address).StartOnBackup(map[string]string{"server type": "MQ"})
+	consumer.start(handler)
 }
 
-func (consumer *Consumer) start(capacity int, handler func(message []byte)) {
-	consumer.messageChan = make(chan []byte, capacity)
+func (consumer *Consumer) start(handler func(message []byte)) {
 	go func() {
 		listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
 		if err != nil {

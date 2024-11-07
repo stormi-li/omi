@@ -19,5 +19,5 @@ func main() {
 		Password: password,
 	})
 	omiwebC := omiweb.NewClient(redisClient, "omi-namespace")
-	omiwebC.Listen("118.25.196.166:7788")
+	omiwebC.NewWebServer("web").Listen("118.25.196.166:7788")
 }

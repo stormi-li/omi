@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	omique "github.com/stormi-li/omi/omi-mq"
 )
 
 var redisAddr = "118.25.196.166:3934"
@@ -15,9 +15,9 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	client := omi.NewMQClient(redisClient, "omi-namespace")
-	consumer := client.NewConsumer("consumer_test", "118.25.196.166:4444")
-	consumer.StartOnMain(1000000, func(message []byte) {
+	client := omique.NewClient(redisClient, "omi-chat")
+	consumer := client.NewConsumer("consumer_test")
+	consumer.ListenOnMain("118.25.196.166:4444", func(message []byte) {
 		fmt.Println(string(message))
 	})
 }

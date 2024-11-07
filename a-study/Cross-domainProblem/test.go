@@ -15,6 +15,6 @@ func main() {
 	})
 	omiwebC := omiweb.NewClient(redisClient, "omi-chat")
 	omiwebC.GenerateTemplate()
-	omiwebC.Listen("118.25.196.166:9911")
+	omiwebC.NewWebServer("CO").Listen("118.25.196.166:9911")
 
 }

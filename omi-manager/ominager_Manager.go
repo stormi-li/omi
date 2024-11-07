@@ -40,8 +40,8 @@ func (manager *Manager) GetServerNodes() []Node {
 	return manager.toNodeSlice(omiclient.Server, manager.serverClient, manager.serverSearcher)
 }
 
-func (manager *Manager) GetMQNodes() []Node {
-	return manager.toNodeSlice(omiclient.MQ, manager.webClient, manager.webSearcher)
+func (manager *Manager) GetWebNodes() []Node {
+	return manager.toNodeSlice(omiclient.Web, manager.webClient, manager.webSearcher)
 }
 
 func (manager *Manager) GetConfigNodes() []Node {
@@ -75,8 +75,8 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(path, "/")
 
 	parts = parts[1:]
-	if parts[0] == command_GetMQNodes {
-		w.Write([]byte(nodesToString(manager.GetMQNodes())))
+	if parts[0] == command_GetWebNodes {
+		w.Write([]byte(nodesToString(manager.GetWebNodes())))
 	}
 	if parts[0] == command_GetServerNodes {
 		w.Write([]byte(nodesToString(manager.GetServerNodes())))
@@ -86,7 +86,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	if parts[0] == command_GetAllNodes {
 		nodes := manager.GetServerNodes()
-		nodes = append(nodes, manager.GetMQNodes()...)
+		nodes = append(nodes, manager.GetWebNodes()...)
 		nodes = append(nodes, manager.GetConfigNodes()...)
 		w.Write([]byte(nodesToString(nodes)))
 	}
@@ -96,7 +96,7 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 		node := manager.nodeMap[key]
 		if node.Address == "" {
 			manager.GetServerNodes()
-			manager.GetMQNodes()
+			manager.GetWebNodes()
 			manager.GetConfigNodes()
 		}
 		node = manager.nodeMap[key]

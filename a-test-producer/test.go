@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	omique "github.com/stormi-li/omi/omi-mq"
 )
 
 var redisAddr = "118.25.196.166:3934"
@@ -17,7 +17,7 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	client := omi.NewMQClient(redisClient, "omi-namespace")
+	client := omique.NewClient(redisClient, "omi-chat")
 	producer := client.NewProducer("consumer_test")
 	for i := 0; i < 10000; i++ {
 		err := producer.Publish([]byte("omi" + strconv.Itoa(i)))

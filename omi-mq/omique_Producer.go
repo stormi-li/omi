@@ -1,14 +1,16 @@
-package omiclient
+package omique
 
 import (
 	"encoding/binary"
 	"fmt"
 	"net"
 	"time"
+
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Producer struct {
-	omiClient *Client
+	omiClient *omiclient.Client
 	channel   string
 	address   string
 	conn      net.Conn

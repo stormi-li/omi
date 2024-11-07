@@ -13,10 +13,6 @@ func NewWebClient(redisClient *redis.Client, namespace string) *omiclient.Client
 	return omiclient.NewClient(redisClient, namespace, omiclient.Web, omiclient.Prefix_Web)
 }
 
-func NewMQClient(redisClient *redis.Client, namespace string) *omiclient.MQClient {
-	return omiclient.NewMQClient(redisClient, namespace, omiclient.MQ, omiclient.Prefix_MQ)
-}
-
 func NewConfigClient(redisClient *redis.Client, namespace string) *omiclient.Client {
 	return omiclient.NewClient(redisClient, namespace, omiclient.Config, omiclient.Prefix_Config)
 }

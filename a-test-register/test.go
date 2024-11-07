@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -93,54 +92,6 @@ func main() {
 		}()
 		register.StartOnMain(map[string]string{"message": "redis"})
 	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-1-用于处理user消息非常重要---------------------------", "118.25.196.166:8899")
-		consumer.StartOnBackup(1000000, func(message []byte) {
-			fmt.Println(string(message))
-		})
-	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-1-用于处理user消息非常重要---------------------------", "118.25.196.166:8890")
-		consumer.StartOnBackup(1000000, func(message []byte) {
-			fmt.Println(string(message))
-		})
-	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-1-用于处理user消息非常重要---------------------------", "118.25.196.166:8898")
-		go func() {
-			time.Sleep(1 * time.Second)
-		}()
-		consumer.StartOnMain(100000, func(message []byte) {
-			fmt.Println(string(message))
-		})
 
-	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-2", "118.25.196.166:8888")
-		consumer.StartOnBackup(1000000, func(message []byte) {
-			fmt.Println(string(message))
-		})
-	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-2", "118.25.196.166:8889")
-		consumer.StartOnMain(1000000, func(message []byte) {
-			fmt.Println(string(message))
-		})
-	}()
-	go func() {
-		client := omi.NewMQClient(omiClient, "omi-namespace")
-		consumer := client.NewConsumer("channel-2", "118.25.196.166:8880")
-		go func() {
-			time.Sleep(1 * time.Second)
-		}()
-		consumer.StartOnMain(1000000, func(message []byte) {
-			fmt.Println(string(message))
-		})
-	}()
 	select {}
 }

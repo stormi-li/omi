@@ -14,5 +14,5 @@ func main() {
 		Password: password,
 	})
 	webC := omiweb.NewClient(redisClient, "omi-chat")
-	webC.Listen("118.25.196.166:8080")
+	webC.NewWebServer("omi-chat-client").Listen("118.25.196.166:8080")
 }
