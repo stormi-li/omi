@@ -35,7 +35,7 @@ func (searcher *Searcher) GetHighestPriorityServer(serverName string) (string, m
 	var validAddr string
 	if len(addrs) > 0 {
 		validAddr = split(addrs[0])[1]
-		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+omipc.NamespaceSeparator+addrs[0]).Result()
+		data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+omipc.NamespaceSeparator+state_start+omipc.NamespaceSeparator+addrs[0]).Result()
 		searcher.data = jsonStrToMap(data)
 	}
 	return validAddr, searcher.data
