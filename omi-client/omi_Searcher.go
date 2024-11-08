@@ -49,14 +49,21 @@ func (searcher *Searcher) GetData(serverName, state, nodeType, address string) m
 
 func (searcher *Searcher) Listen(serverName string, handler func(address string, data map[string]string)) {
 	addr := ""
-	for {
-		newAddr, _ := searcher.GetHighestPriorityServer(serverName)
-		if newAddr != addr {
-			addr = newAddr
-			handler(addr, searcher.data)
-		}
-		time.Sleep(const_listenWaitTime)
+	newAddr, _ := searcher.GetHighestPriorityServer(serverName)
+	if newAddr != addr {
+		addr = newAddr
+		handler(addr, searcher.data)
 	}
+	go func() {
+		for {
+			newAddr, _ := searcher.GetHighestPriorityServer(serverName)
+			if newAddr != addr {
+				addr = newAddr
+				handler(addr, searcher.data)
+			}
+			time.Sleep(const_listenWaitTime)
+		}
+	}()
 }
 
 func (searcher *Searcher) SearchRunningServers(serverName string) []string {

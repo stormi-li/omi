@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/stormi-li/omi"
-	"github.com/stormi-li/omi/app-login/models"
+	"github.com/stormi-li/omi/app-server-login/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

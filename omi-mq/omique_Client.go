@@ -26,6 +26,6 @@ func (c *Client) NewProducer(channel string) *Producer {
 		omiClient: c.omiClient,
 		channel:   channel,
 	}
-	go producer.listen()
+	producer.listen()
 	return &producer
 }

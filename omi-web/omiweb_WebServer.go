@@ -20,7 +20,6 @@ type WebServer struct {
 	omiClient   *omiclient.Client
 	serverName  string
 	namespace   string
-	address     string
 	upgrader    websocket.Upgrader
 	embedSource embed.FS
 	embedModel  bool
@@ -80,8 +79,8 @@ func (webServer *WebServer) Listen(address string) {
 		}
 	})
 	omi.NewWebClient(webServer.redisClient, webServer.namespace).NewRegister(webServer.serverName, address).StartOnMain()
-	log.Println("omi web server: " + webServer.serverName + " is running on http://" + webServer.address)
-	http.ListenAndServe(":"+strings.Split(webServer.address, ":")[1], nil)
+	log.Println("omi web server: " + webServer.serverName + " is running on http://" + address)
+	http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
 }
 
 func (webServer *WebServer) getTargetURL(r *http.Request) string {
