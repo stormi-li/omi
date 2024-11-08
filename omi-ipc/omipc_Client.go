@@ -10,24 +10,22 @@ import (
 
 type Client struct {
 	redisClient *redis.Client
-	namespace   string
 	ctx         context.Context
 }
 
 func NewOmipc(redisClient *redis.Client) *Client {
 	return &Client{
 		redisClient: redisClient,
-		namespace:   "omipc",
 		ctx:         context.Background(),
 	}
 }
 
 func (c *Client) Notify(channel, msg string) {
-	c.redisClient.Publish(c.ctx, c.namespace+channel, msg)
+	c.redisClient.Publish(c.ctx, channel, msg)
 }
 
 func (c *Client) Wait(channel string, timeout time.Duration) string {
-	sub := c.redisClient.Subscribe(c.ctx, c.namespace+channel)
+	sub := c.redisClient.Subscribe(c.ctx, channel)
 
 	msgChan := sub.Channel()
 	defer sub.Close()
@@ -49,7 +47,7 @@ func (c *Client) Wait(channel string, timeout time.Duration) string {
 }
 
 func (c *Client) NewListener(channel string) *Listener {
-	sub := c.redisClient.Subscribe(c.ctx, c.namespace+channel)
+	sub := c.redisClient.Subscribe(c.ctx, channel)
 	return &Listener{
 		shutdown: make(chan struct{}, 1),
 		sub:      sub,
@@ -63,7 +61,6 @@ func (c *Client) NewLock(lockName string) *Lock {
 		stop:        make(chan struct{}, 1),
 		omipcClient: c,
 		redisClient: c.redisClient,
-		namespace:   c.namespace,
 		ctx:         context.Background(),
 	}
 }

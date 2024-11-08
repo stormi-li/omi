@@ -16,7 +16,7 @@ func main() {
 		Password: password,
 	})
 
-	client := omi.NewServerClient(redisClient, "omi-chat")
+	client := omi.NewServerClient(redisClient)
 	register := client.NewRegister("用户登录注册服务", "118.25.196.166:8084")
 	register.StartOnMain()
 
@@ -27,7 +27,8 @@ func main() {
 	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
 	r.GET("/tokenValidation", controllers.TokeValidation)
-
+	r.GET("/generate_qr", controllers.GenerateQRCode)
+	r.GET("/qrValidation", controllers.LoginWebSocket)
 	// 启动服务器
 	r.Run(":8084")
 }

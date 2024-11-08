@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	"github.com/skip2/go-qrcode"
 	"github.com/stormi-li/omi/app-server-login/database"
 	"github.com/stormi-li/omi/app-server-login/models"
 	"github.com/stormi-li/omi/app-server-login/utils"
@@ -79,7 +83,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 生成 JWT
-	tokenString, err := generateJWT(user.Username)
+	tokenString, err := utils.GenerateJWT(user.Username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -93,6 +97,7 @@ func Login(c *gin.Context) {
 	})
 }
 
+// token验证
 func TokeValidation(c *gin.Context) {
 	// 从 Authorization 头部获取 Token
 	authHeader := c.GetHeader("Authorization")
@@ -118,24 +123,80 @@ func TokeValidation(c *gin.Context) {
 	})
 }
 
-func generateJWT(username string) (string, error) {
-	// 设置 token 的过期时间，这里设置为 24 小时后
-	expirationTime := time.Now().Add(24 * time.Hour)
+var (
+	sessions     = make(map[string]string) // sessionID to token mapping
+	sessionMutex = &sync.Mutex{}           // protect sessions map
+	upgrader     = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
+)
 
-	// 创建 JWT 的声明内容
-	claims := &jwt.StandardClaims{
-		Subject:   username,
-		ExpiresAt: expirationTime.Unix(),
-	}
+// 生成二维码
+func GenerateQRCode(c *gin.Context) {
+	sessionID := uuid.NewString() // 自定义函数生成唯一 sessionID
+	sessionMutex.Lock()
+	sessions[sessionID] = "" // 初始化 sessionID 状态
+	sessionMutex.Unlock()
 
-	// 创建 token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// 生成二维码 URL
+	qrCodeURL := "http://118.25.196.166:8084/scan?session_id=" + sessionID
+	png, _ := qrcode.Encode(qrCodeURL, qrcode.Medium, 256)
+	c.JSON(http.StatusOK, gin.H{"session_id": sessionID, "qr_code": png})
+}
 
-	// 使用密钥签名 token
-	tokenString, err := token.SignedString(utils.JWT_SECRET)
+type SessionRequest struct {
+	SessionID string `json:"session_id"`
+}
+
+// WebSocket 连接，用于检查登录状态
+func LoginWebSocket(c *gin.Context) {
+	// 升级 HTTP 连接为 WebSocket 连接
+	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		return "", err
+		c.JSON(500, gin.H{"error": "Failed to upgrade to WebSocket"})
+		return
+	}
+	defer ws.Close()
+
+	var sessionID string
+
+	// 读取并处理来自客户端的消息
+	_, message, err := ws.ReadMessage()
+	if err != nil {
+		return
 	}
 
-	return tokenString, nil
+	var req SessionRequest
+	if err := json.Unmarshal(message, &req); err != nil {
+		return
+	}
+	sessionID = req.SessionID
+	sessions[sessionID] = c.Query("sessionID")
+	for {
+		// 检查 sessionID 对应的 token
+		sessionMutex.Lock()
+		token, exists := sessions[sessionID]
+		sessionMutex.Unlock()
+
+		// 如果 token 存在，则发送并关闭 WebSocket 连接
+		if exists && token != "" {
+			err := ws.WriteMessage(websocket.TextMessage, []byte(token))
+			delete(sessions, sessionID)
+			if err != nil {
+				return
+			}
+			break
+		}
+		// 如果 token 不存在，等待 1 秒再检查
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func ConfirmLogin(c *gin.Context) {
+	sessionID := c.Query("session_id")
+	token := "generated_user_token" // 实际生产环境中生成用户 Token
+
+	sessionMutex.Lock()
+	sessions[sessionID] = token
+	sessionMutex.Unlock()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Login confirmed"})
 }

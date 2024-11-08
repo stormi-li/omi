@@ -6,10 +6,9 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func NewClient(redisClient *redis.Client, namespace string) *Client {
+func NewClient(redisClient *redis.Client) *Client {
 	return &Client{
 		redisClient: redisClient,
-		namespace:   namespace + NamespaceSeparator,
 		ctx:         context.Background(),
 	}
 }

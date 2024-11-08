@@ -21,10 +21,10 @@ type Manager struct {
 	nodeMap        map[string]Node
 }
 
-func NewManager(redisClient *redis.Client, namespace string) *Manager {
-	serverClient := omi.NewServerClient(redisClient, namespace)
-	webClient := omi.NewWebClient(redisClient, namespace)
-	configClient := omi.NewConfigClient(redisClient, namespace)
+func NewManager(opts *redis.Options) *Manager {
+	serverClient := omi.NewServerClient(opts)
+	webClient := omi.NewWebClient(opts)
+	configClient := omi.NewConfigClient(opts)
 	return &Manager{
 		serverClient:   serverClient,
 		webClient:      webClient,

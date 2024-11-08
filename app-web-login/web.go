@@ -13,7 +13,7 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	c := omiweb.NewClient(redisClient, "omi-chat")
+	c := omiweb.NewClient(redisClient)
 	ws := c.NewWebServer("登录注册界面")
 	ws.Listen("118.25.196.166:8081")
 }

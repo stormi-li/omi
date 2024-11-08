@@ -12,7 +12,7 @@ import (
 //go:embed src/*
 var embedSource embed.FS
 
-func Start(redisClient *redis.Client, address string) {
+func Start(opts *redis.Options, address string) {
 
 	managerMap := map[string]*Manager{}
 
@@ -20,7 +20,7 @@ func Start(redisClient *redis.Client, address string) {
 		w.Header().Set("Access-Control-Allow-Origin", "*") // 使用 "*" 允许所有域
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		
+
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -41,7 +41,7 @@ func Start(redisClient *redis.Client, address string) {
 		part := strings.Split(r.URL.Path, "/")
 		if len(part) > 1 && len(strings.Split(part[1], ".")) == 1 {
 			if managerMap[part[1]] == nil {
-				managerMap[part[1]] = NewManager(redisClient, part[1])
+				managerMap[part[1]] = NewManager(opts)
 			}
 			managerMap[part[1]].Handler(w, r)
 			return

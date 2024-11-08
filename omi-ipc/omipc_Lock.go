@@ -13,7 +13,6 @@ type Lock struct {
 	stop        chan struct{}
 	redisClient *redis.Client
 	omipcClient *Client
-	namespace   string
 	ctx         context.Context
 }
 
@@ -21,7 +20,7 @@ func (l *Lock) Lock() {
 	for {
 		var ok bool
 		//尝试占有锁-----------------------------------------redis代码
-		ok, _ = l.redisClient.SetNX(l.ctx, l.namespace+l.lockName, l.uuid, const_exipireTime*time.Second).Result()
+		ok, _ = l.redisClient.SetNX(l.ctx, l.lockName, l.uuid, const_exipireTime*time.Second).Result()
 
 		if ok {
 			//看门口协程
@@ -75,7 +74,7 @@ func (l *Lock) updateExpiryIfValueMatches() (bool, error) {
         end
     `
 	//执行lua脚本-----------------------------------------redis代码
-	result, err := l.redisClient.Eval(l.ctx, script, []string{l.namespace + l.lockName}, l.uuid, const_exipireTime).Result()
+	result, err := l.redisClient.Eval(l.ctx, script, []string{l.lockName}, l.uuid, const_exipireTime).Result()
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +94,7 @@ func (l *Lock) deleteIfValueMatches() (bool, error) {
 		end
 	`
 	//执行lua脚本-----------------------------------------redis代码
-	result, err := l.redisClient.Eval(l.ctx, luaScript, []string{l.namespace + l.lockName}, l.uuid).Result()
+	result, err := l.redisClient.Eval(l.ctx, luaScript, []string{l.lockName}, l.uuid).Result()
 	if err != nil {
 		return false, err
 	}

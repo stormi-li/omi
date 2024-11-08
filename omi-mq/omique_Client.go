@@ -9,8 +9,8 @@ type Client struct {
 	omiClient *omiclient.Client
 }
 
-func newClient(redisClient *redis.Client, namespace string, serverType string, prefix string) *Client {
-	return &Client{omiClient: omiclient.NewClient(redisClient, namespace, serverType, prefix)}
+func newClient(redisClient *redis.Client, serverType string, prefix string) *Client {
+	return &Client{omiClient: omiclient.NewClient(redisClient, serverType, prefix)}
 }
 
 func (c *Client) NewConsumer(channel string) *Consumer {

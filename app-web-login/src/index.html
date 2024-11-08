@@ -103,6 +103,7 @@
             <span id="toggle-text">Already have an account?</span>
             <span class="switch" onclick="toggleForm()">Sign in</span>
         </p>
+        <button id="submit-btn" onclick="qrLogin()">QR Code Login</button>
     </div>
 
     <script>
@@ -153,6 +154,10 @@
                 document.getElementById("message").style.color = "#d73a49";
                 document.getElementById("message").innerText = "Failed to connect to the server.";
             }
+
+        }
+        function qrLogin() {
+            window.location.href = "http://" + window.location.host + "/qr.html"
         }
     </script>
 </body>

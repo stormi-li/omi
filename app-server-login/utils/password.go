@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -45,4 +46,26 @@ func ValidateToken(tokenString string) (string, error) {
 	}
 
 	return "", errors.New("Invalid token claims")
+}
+
+func GenerateJWT(username string) (string, error) {
+	// 设置 token 的过期时间，这里设置为 24 小时后
+	expirationTime := time.Now().Add(24 * time.Hour)
+
+	// 创建 JWT 的声明内容
+	claims := &jwt.StandardClaims{
+		Subject:   username,
+		ExpiresAt: expirationTime.Unix(),
+	}
+
+	// 创建 token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// 使用密钥签名 token
+	tokenString, err := token.SignedString(JWT_SECRET)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

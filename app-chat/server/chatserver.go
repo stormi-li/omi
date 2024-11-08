@@ -63,7 +63,7 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiClient := omi.NewServerClient(redisClient, "omi-chat")
+	omiClient := omi.NewServerClient(redisClient)
 	omiClient.NewRegister("omi-chat-server", address).StartOnMain()
 	// 启动 HTTP 服务器
 	log.Println("omi-chat server started at ws://" + address)

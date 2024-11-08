@@ -6,5 +6,5 @@ import (
 )
 
 func NewClient(redisClient *redis.Client, namespace string) *Client {
-	return newClient(redisClient, namespace, omiclient.Config, omiclient.Prefix_Config)
+	return newClient(redisClient, omiclient.Config, omiclient.Prefix_Config)
 }

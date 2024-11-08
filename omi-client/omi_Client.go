@@ -14,11 +14,11 @@ type Client struct {
 	serverType  string
 }
 
-func NewClient(redisClient *redis.Client, namespace string, serverType string, prefix string) *Client {
+func NewClient(redisClient *redis.Client, serverType string, prefix string) *Client {
 	return &Client{
-		omipcClient: omipc.NewClient(redisClient, namespace),
+		omipcClient: omipc.NewClient(redisClient),
 		redisClient: redisClient,
-		namespace:   namespace + omipc.NamespaceSeparator + prefix,
+		namespace:   prefix,
 		serverType:  serverType,
 	}
 }

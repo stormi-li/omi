@@ -5,14 +5,14 @@ import (
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
-func NewServerClient(redisClient *redis.Client, namespace string) *omiclient.Client {
-	return omiclient.NewClient(redisClient, namespace, omiclient.Server, omiclient.Prefix_Server)
+func NewServerClient(opts *redis.Options) *omiclient.Client {
+	return omiclient.NewClient(redis.NewClient(opts), omiclient.Server, omiclient.Prefix_Server)
 }
 
-func NewWebClient(redisClient *redis.Client, namespace string) *omiclient.Client {
-	return omiclient.NewClient(redisClient, namespace, omiclient.Web, omiclient.Prefix_Web)
+func NewWebClient(opts *redis.Options) *omiclient.Client {
+	return omiclient.NewClient(redis.NewClient(opts), omiclient.Web, omiclient.Prefix_Web)
 }
 
-func NewConfigClient(redisClient *redis.Client, namespace string) *omiclient.Client {
-	return omiclient.NewClient(redisClient, namespace, omiclient.Config, omiclient.Prefix_Config)
+func NewConfigClient(opts *redis.Options) *omiclient.Client {
+	return omiclient.NewClient(redis.NewClient(opts), omiclient.Config, omiclient.Prefix_Config)
 }

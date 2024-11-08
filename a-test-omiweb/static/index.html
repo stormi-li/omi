@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #qrCode {
+            margin-bottom: 20px;
+            width: 200px;
+            height: 200px;
+        }
+
+        .message {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #d73a49;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Scan to Login</h2>
+        <img id="qrCode" src="" alt="QR Code">
+        <div id="message" class="message">Waiting for scan...</div>
+    </div>
+
+    <script>
+        let sessionID = null;
+
+        // 初始化二维码登录
+        async function initQRCodeLogin() {
+            try {
+                // 请求后端接口获取二维码和 sessionID
+                const response = await fetch(`/http_proxy/用户登录注册服务/generate_qr?aaa=` + "fsfsdfafasf");
+                const data = await response.json();
+                sessionID = data.session_id;
+                // 设置二维码图片
+                document.getElementById("qrCode").src = `data:image/png;base64,${data.qr_code}`;
+
+                // 启动 WebSocket 连接
+                setupWebSocket();
+            } catch (error) {
+                document.getElementById("message").innerText = "Failed to load QR code.";
+                document.getElementById("message").classList.add("error");
+                console.error("Error initializing QR code login:", error);
+            }
+        }
+
+        // 设置 WebSocket 连接
+        // 设置 WebSocket 连接
+        function setupWebSocket() {
+            // 创建 WebSocket 连接
+            const ws = new WebSocket(`/websocket_proxy/用户登录注册服务/qrValidation?sessionID=` + sessionID);
+
+            ws.onopen = () => {
+                console.log("WebSocket connection opened.");
+                document.getElementById("message").innerText = "Waiting for scan...";
+
+                // 连接建立后，发送 sessionID
+                ws.send(JSON.stringify({ session_id: sessionID }));
+            };
+
+            ws.onmessage = (event) => {
+                const token = event.data;
+                if (token) {
+                    // 如果收到 token，则将 token 存入 localStorage 并跳转
+                    localStorage.setItem("token", token);
+                    document.getElementById("message").innerText = "Login successful!";
+                    window.location.href = "/home.html"
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error("WebSocket error:", error);
+                document.getElementById("message").innerText = "Connection error. Please try again.";
+                document.getElementById("message").classList.add("error");
+            };
+
+            ws.onclose = () => {
+                console.log("WebSocket connection closed.");
+                document.getElementById("message").innerText = "WebSocket connection closed.";
+            };
+        }
+        // 执行初始化
+        initQRCodeLogin();
+    </script>
+</body>
+
+</html>

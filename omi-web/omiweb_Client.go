@@ -8,13 +8,12 @@ import (
 type Client struct {
 	redisClient *redis.Client
 	omiClient   *omiclient.Client
-	namespace   string
 }
 
 func (omiweb *Client) NewWebServer(serverName string) *WebServer {
-	return newWebServer(omiweb.redisClient, omiweb.namespace, serverName)
+	return newWebServer(omiweb.redisClient, serverName)
 }
 
 func (omiweb *Client) GenerateTemplate() {
-	copyResource(getSourceFilePath() + "/TemplateSource")
+	copyResource(getSourceFilePath() + source_path)
 }

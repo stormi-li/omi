@@ -5,11 +5,10 @@ import (
 	"github.com/stormi-li/omi"
 )
 
-func NewClient(redisClient *redis.Client, namespace string) *Client {
-	omiClient := omi.NewServerClient(redisClient, namespace)
+func NewClient(opts *redis.Options) *Client {
+	omiClient := omi.NewServerClient(opts)
 	return &Client{
-		redisClient: redisClient,
+		redisClient: redis.NewClient(opts),
 		omiClient:   omiClient,
-		namespace:   namespace,
 	}
 }

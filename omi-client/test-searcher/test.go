@@ -11,13 +11,9 @@ var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func main() {
-	redisClient := redis.NewClient(&redis.Options{
+	s := omi.NewConfigClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
-	})
-	c := omi.NewServerClient(redisClient)
-	searcher := c.NewSearcher()
-	for _, val := range searcher.SearchRunningServers("user_server") {
-		fmt.Println(val)
-	}
+	}).NewSearcher().AllServers()
+	fmt.Println(s)
 }

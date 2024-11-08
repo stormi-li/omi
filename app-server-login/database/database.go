@@ -21,7 +21,7 @@ func init() {
 		Password: password,
 	})
 
-	addr, data := omi.NewConfigClient(redisClient, "omi-chat").NewSearcher().GetHighestPriorityServer("mysql")
+	addr, data := omi.NewConfigClient(redisClient).NewSearcher().GetHighestPriorityServer("mysql")
 	fmt.Println(data)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", data["username"], data["password"], addr, data["database"])
 	fmt.Println(dsn)

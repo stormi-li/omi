@@ -40,7 +40,7 @@ func isMoreThanTwoSecondsAgo(timeString string) bool {
 }
 
 func copyResource(src string) {
-	err := copyDir(src, "./src")
+	err := copyDir(src, target_path)
 	if err != nil {
 		log.Fatalln(err)
 	}
