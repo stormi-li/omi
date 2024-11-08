@@ -231,13 +231,10 @@
                         }
                         const rowHTML = `
                 <div class="table_row" id="${type}">
-                    <span class="type">${server.serverType}</span>
-                    <span class="name">${server.serverName}</span>
-                    <span class="address">${server.address}</span>
-                    <button class="button main_button" ${server.nodeType !== "main" ? 'disabled' : ''}>主节点</button>
-                    <button class="button backup_button" ${server.nodeType !== "backup" ? 'disabled' : ''}>副节点</button>
-                    <button class="button start_button" ${server.state !== "start" ? 'disabled' : ''}>启动</button>
-                    <button class="button stop_button" ${server.state !== "stop" ? 'disabled' : ''}>停止</button>
+                    <span class="type"></span>
+                    <span class="name"></span>
+                    <span class="address"></span>
+                    <span class="weight"></span>
                 </div>
             `;
                         dataContainer.innerHTML += rowHTML;

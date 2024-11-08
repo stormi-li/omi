@@ -16,15 +16,9 @@ type Consumer struct {
 	messageChan chan []byte
 }
 
-func (consumer *Consumer) ListenOnMain(address string, handler func(message []byte)) {
+func (consumer *Consumer) Listen(address string, weight int, handler func(message []byte)) {
 	consumer.address = address
-	go consumer.omiClient.NewRegister(consumer.channel, address).StartOnMain(map[string]string{"server type": "MQ"})
-	consumer.start(handler)
-}
-
-func (consumer *Consumer) ListenOnBackup(address string, handler func(message []byte)) {
-	consumer.address = address
-	go consumer.omiClient.NewRegister(consumer.channel, address).StartOnBackup(map[string]string{"server type": "MQ"})
+	go consumer.omiClient.NewRegister(consumer.channel, address).Start(weight, map[string]string{"server type": "MQ"})
 	consumer.start(handler)
 }
 

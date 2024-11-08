@@ -10,13 +10,14 @@ import (
 )
 
 type Producer struct {
-	omiClient *omiclient.Client
-	channel   string
-	address   string
-	conn      net.Conn
+	searcher *omiclient.Searcher
+	channel  string
+	address  string
+	conn     net.Conn
 }
 
 func (producer *Producer) connect() error {
+	producer.address, _ = producer.searcher.SearchOneByWeight(producer.channel)
 	if producer.address == "" {
 		producer.conn = nil
 		return fmt.Errorf("no message queue service was found")
@@ -27,13 +28,6 @@ func (producer *Producer) connect() error {
 		return nil
 	}
 	return err
-}
-
-func (producer *Producer) listen() {
-	producer.omiClient.NewSearcher().Listen(producer.channel, func(addr string, data map[string]string) {
-		producer.address = addr
-		producer.connect()
-	})
 }
 
 func (producer *Producer) Publish(message []byte) error {

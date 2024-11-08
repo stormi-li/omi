@@ -74,11 +74,14 @@ func (webServer *WebServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (webServer *WebServer) Listen(address string) {
+func (webServer *WebServer) Listen(address string, weight int) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		webServer.handleFunc(w, r)
 	})
-	omi.NewWebClient(webServer.redisClient.Options()).NewRegister(webServer.serverName, address).StartOnMain()
+	omi.NewWebClient(webServer.redisClient.Options()).NewRegister(webServer.serverName, address).Start(weight, map[string]string{})
 	log.Println("omi web server: " + webServer.serverName + " is running on http://" + address)
-	http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
+	err := http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

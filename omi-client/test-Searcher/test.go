@@ -1,17 +1,20 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/go-redis/redis/v8"
-	omimanager "github.com/stormi-li/omi/omi-manager"
+	"github.com/stormi-li/omi"
 )
 
 var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func main() {
-	c:=omimanager.NewClient(&redis.Options{
+	searcher := omi.NewConfigClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
-	})
-	c.Start("118.25.196.166:8888")
+	}).NewSearcher()
+	name, data := searcher.SearchOneByWeight("redis")
+	fmt.Println(name, data)
 }

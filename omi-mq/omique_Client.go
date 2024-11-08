@@ -23,9 +23,8 @@ func (c *Client) NewConsumer(channel string) *Consumer {
 
 func (c *Client) NewProducer(channel string) *Producer {
 	producer := Producer{
-		omiClient: c.omiClient,
-		channel:   channel,
+		searcher: c.omiClient.NewSearcher(),
+		channel:  channel,
 	}
-	producer.listen()
 	return &producer
 }

@@ -11,14 +11,13 @@ var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func main() {
-	redisClient := redis.NewClient(&redis.Options{
+
+	client := omi.NewServerClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
 	})
-
-	client := omi.NewServerClient(redisClient)
-	register := client.NewRegister("用户登录注册服务", "118.25.196.166:8084")
-	register.StartOnMain()
+	register := client.NewRegister("用户登录注册服务", "118.25.196.166:7788")
+	register.Start(1, map[string]string{})
 
 	// 创建 Gin 路由
 	r := gin.Default()
@@ -30,5 +29,5 @@ func main() {
 	r.GET("/generate_qr", controllers.GenerateQRCode)
 	r.GET("/qrValidation", controllers.LoginWebSocket)
 	// 启动服务器
-	r.Run(":8084")
+	r.Run(":7788")
 }

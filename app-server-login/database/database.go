@@ -16,12 +16,11 @@ var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func init() {
-	redisClient := redis.NewClient(&redis.Options{
+
+	addr, data := omi.NewConfigClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
-	})
-
-	addr, data := omi.NewConfigClient(redisClient).NewSearcher().GetHighestPriorityServer("mysql")
+	}).NewSearcher().SearchOneByWeight("mysql")
 	fmt.Println(data)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", data["username"], data["password"], addr, data["database"])
 	fmt.Println(dsn)

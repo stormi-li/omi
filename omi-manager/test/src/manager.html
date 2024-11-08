@@ -96,7 +96,7 @@
         }
 
         #table_row_1 {
-            background-color: #eaf1fd;
+            background-color: #c3d9ff;
         }
 
         #table_row_2 {
@@ -125,6 +125,12 @@
             text-align: center;
         }
 
+        .table_row .weight {
+            flex: 1;
+            /* 地址信息占较大宽度 */
+            text-align: center;
+        }
+
         .button {
             padding: 5px 10px;
             margin: 0 2px;
@@ -147,55 +153,25 @@
 
     <!-- 搜索框 -->
     <div class="search-container">
-        <input type="text" class="search-input" placeholder="namespace" id="search-box" onkeydown="handleSearch(event)">
+        <input type="text" class="search-input" placeholder="Search..." id="search-box" onkeydown="handleSearch(event)">
     </div>
 
     <!-- 导航栏 -->
     <div class="nav-bar">
-        <span class="nav-item active" onclick="changeContent('All')">All</span>
         <span class="nav-item" onclick="changeContent('Server')">Server</span>
-        <span class="nav-item" onclick="changeContent('MQ')">MQ</span>
+        <span class="nav-item" onclick="changeContent('Web')">Web</span>
         <span class="nav-item" onclick="changeContent('Config')">Config</span>
     </div>
 
     <!-- 内容显示区 -->
     <div class="content-container" id="data-container">
-        <div class="table_row">
-            <span class="type">类型</span>
-            <span class="name">名称</span>
-            <span class="address">地址信息</span>
-            <button class="button">主节点</button>
-            <button class="button">副节点</button>
-            <button class="button">启动</button>
-            <button class="button">停止</button>
-        </div>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
         const query = params.get("query");
         document.getElementById("search-box").value = `${query}`;
-        changeContent("All")
-
-        class ServerInfo {
-            constructor({ ServerType, ServerName, State, NodeType, Address }) {
-                this.serverType = ServerType;
-                this.serverName = ServerName;
-                this.state = State;
-                this.nodeType = NodeType;
-                this.address = Address;
-            }
-
-            // 判断服务器是否停止
-            isStopped() {
-                return this.state === 'stop';
-            }
-
-            // 获取服务器的描述
-            getDescription() {
-                return `${this.serverType} Server "${this.serverName}" is currently ${this.state} at ${this.address}`;
-            }
-        }
+        // changeContent("All")
 
         function changeContent(type) {
             // 移除当前激活的样式
@@ -214,92 +190,67 @@
             if (type == "Server") {
                 request = "GetServerNodes"
             }
-            if (type == "MQ") {
-                request = "GetMQNodes"
+            if (type == "Web") {
+                request = "GetWebNodes"
             }
             if (type == "Config") {
                 request = "GetConfigNodes"
             }
-            if (type == "All") {
-                request = "GetAllNodes"
-            }
-            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + request
+
+            let path = 'http://' + window.location.host + '/' + request
             // 获取数组数据'            
+            // 使用 fetch 向后端发送请求
 
-            var servers
-
-
-            fetch(path) // 替换为实际 URL
-                .then(response => response.json())
-                .then(dataArray => {
-                    const servers = dataArray.map(data => new ServerInfo(data));
+            fetch(path, {
+                method: 'GET', // 或者 'POST'，根据需求调整
+                headers: {
+                    'Content-Type': 'application/json', // 根据后端要求设定
+                },
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json(); // 如果返回的是 JSON 数据
+                })
+                .then(data => {
+                    console.log('Data received:', data);
                     const dataContainer = document.getElementById('data-container');
                     dataContainer.innerHTML = ''; // 清空容器
-                    let name = ""
-                    let type = "table_row_1"
-                    servers.forEach(server => {
-                        if (server.serverName !== name) {
-                            type = (type === "table_row_1") ? "table_row_2" : "table_row_1";
-                            name = server.serverName;
+
+                    let stype = "table_row_1";
+                    let previousServerName = "";
+
+                    // 遍历 data 对象，提取服务名称、地址和权重
+                    for (const serverName in data) {
+                        const serverAddresses = data[serverName];
+
+                        for (const address in serverAddresses) {
+                            const weight = serverAddresses[address].weight;
+
+                            // 切换行样式
+                            if (serverName !== previousServerName) {
+                                stype = (stype === "table_row_1") ? "table_row_2" : "table_row_1";
+                                previousServerName = serverName;
+                            }
+
+                            // 生成表格行的 HTML
+                            const rowHTML = `
+                    <div class="table_row ${stype}">
+                        <span class="type">${type}</span>
+                        <span class="name">${serverName}</span>
+                        <span class="address">${address}</span>
+                        <span class="weight">${weight}</span>
+                    </div>
+                `;
+                            // 将行内容添加到容器
+                            dataContainer.innerHTML += rowHTML;
                         }
-                        const rowHTML = `
-                <div class="table_row" id="${type}">
-                    <span class="type">${server.serverType}</span>
-                    <span class="name">${server.serverName}</span>
-                    <span class="address">${server.address}</span>
-                    <button class="button main_button" ${server.nodeType !== "main" ? 'disabled' : ''}>主节点</button>
-                    <button class="button backup_button" ${server.nodeType !== "backup" ? 'disabled' : ''}>副节点</button>
-                    <button class="button start_button" ${server.state !== "start" ? 'disabled' : ''}>启动</button>
-                    <button class="button stop_button" ${server.state !== "stop" ? 'disabled' : ''}>停止</button>
-                </div>
-            `;
-                        dataContainer.innerHTML += rowHTML;
-                    });
-
-                    // 选择所有生成的 .table_row 元素并添加事件监听
-                    document.querySelectorAll('.table_row').forEach(row => {
-                        const type = row.querySelector('.type');
-                        const name = row.querySelector('.name');
-                        const address = row.querySelector('.address');
-                        const mainButton = row.querySelector('.main_button');
-                        const backupButton = row.querySelector('.backup_button');
-                        const startButton = row.querySelector('.start_button');
-                        const stopButton = row.querySelector('.stop_button');
-
-                        // 主节点按钮点击事件
-                        mainButton.addEventListener('click', () => {
-                            backupButton.disabled = false; // 禁用副节点按钮
-                            mainButton.disabled = true; // 保证主节点按钮可用
-                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToBackup" + "/" + name.innerHTML + '/' + address.innerHTML
-                            fetch(path).catch(error => console.error('请求失败:', error));
-                        });
-
-                        // 副节点按钮点击事件
-                        backupButton.addEventListener('click', () => {
-                            mainButton.disabled = false; // 禁用主节点按钮
-                            backupButton.disabled = true; // 保证副节点按钮可用
-                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "ToMain" + "/" + name.innerHTML + '/' + address.innerHTML
-                            fetch(path).catch(error => console.error('请求失败:', error));
-                        });
-
-                        // 启动按钮点击事件
-                        startButton.addEventListener('click', () => {
-                            stopButton.disabled = false; // 禁用停止按钮
-                            startButton.disabled = true; // 保证启动按钮可用
-                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Stop" + "/" + name.innerHTML + '/' + address.innerHTML
-                            fetch(path).catch(error => console.error('请求失败:', error));
-                        });
-
-                        // 停止按钮点击事件
-                        stopButton.addEventListener('click', () => {
-                            startButton.disabled = false; // 禁用启动按钮
-                            stopButton.disabled = true; // 保证停止按钮可用
-                            let path = 'http://' + window.location.host + '/' + document.querySelector("#search-box").value + '/' + "Start" + "/" + name.innerHTML + '/' + address.innerHTML
-                            fetch(path).catch(error => console.error('请求失败:', error));
-                        });
-                    });
+                    }
                 })
-                .catch(error => console.error('请求失败:', error));
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
         }
 
         function handleSearch(event) {

@@ -18,7 +18,7 @@ func newRouter(searcher *omiclient.Searcher) *Router {
 
 func (router *Router) getAddress(serverName string) string {
 	if len(router.addressMap[serverName]) != 2 {
-		address, _ := router.searcher.GetHighestPriorityServer(serverName)
+		address, _ := router.searcher.SearchOneByWeight(serverName)
 		if address != "" {
 			router.addressMap[serverName] = []string{address, getCurrentTimeString()}
 		} else {
@@ -31,7 +31,7 @@ func (router *Router) getAddress(serverName string) string {
 
 func (router *Router) refresh(serverName string) {
 	if isMoreThanTwoSecondsAgo(router.addressMap[serverName][1]) {
-		address, _ := router.searcher.GetHighestPriorityServer(serverName)
+		address, _ := router.searcher.SearchOneByWeight(serverName)
 		router.addressMap[serverName][0] = address
 		router.addressMap[serverName][1] = getCurrentTimeString()
 	}

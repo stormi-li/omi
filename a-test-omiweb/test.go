@@ -12,11 +12,10 @@ var password = "12982397StrongPassw0rd"
 // var embedSource embed.FS
 
 func main() {
-	redisClient := redis.NewClient(&redis.Options{
+	omiwebC := omiweb.NewClient(&redis.Options{
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiwebC := omiweb.NewClient(redisClient)
 	omiwebC.GenerateTemplate()
-	omiwebC.NewWebServer("web").Listen("118.25.196.166:7788")
+	omiwebC.NewWebServer("web").Listen("118.25.196.166:8899",3)
 }
