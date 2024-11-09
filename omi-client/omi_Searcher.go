@@ -42,7 +42,7 @@ func (searcher *Searcher) SearchAllServers() map[string]map[string]map[string]st
 	return res
 }
 
-func (searcher *Searcher) SearchOneByWeight(serverName string) (string, map[string]string) {
+func (searcher *Searcher) SearchByLoadBalancing(serverName string) (string, map[string]string) {
 	addrs := searcher.SearchByName(serverName)
 	var addressPool []string
 	var dataPool []map[string]string

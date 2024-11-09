@@ -15,6 +15,6 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	}).NewSearcher()
-	name, data := searcher.SearchOneByWeight("redis")
+	name, data := searcher.SearchByLoadBalancing("redis")
 	fmt.Println(name, data)
 }

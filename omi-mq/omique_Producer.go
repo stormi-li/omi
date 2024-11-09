@@ -17,7 +17,7 @@ type Producer struct {
 }
 
 func (producer *Producer) connect() error {
-	producer.address, _ = producer.searcher.SearchOneByWeight(producer.channel)
+	producer.address, _ = producer.searcher.SearchByLoadBalancing(producer.channel)
 	if producer.address == "" {
 		producer.conn = nil
 		return fmt.Errorf("no message queue service was found")
