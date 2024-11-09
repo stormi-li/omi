@@ -10,5 +10,5 @@ var password = "12982397StrongPassw0rd"
 
 func main() {
 	c := omi.NewManager(&redis.Options{Addr: redisAddr, Password: password})
-	c.Develop("118.25.196.166:9999")
+	c.Listen("118.25.196.166:9999")
 }

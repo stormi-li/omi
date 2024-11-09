@@ -23,9 +23,9 @@ func (c *Client) Listen(address string) {
 	c.listen(address, true)
 }
 
-func (c *Client) Develop(address string) {
-	c.listen(address, false)
-}
+// func (c *Client) Develop(address string) {
+// 	c.listen(address, false)
+// }
 
 func (c *Client) listen(address string, embedModel bool) {
 
