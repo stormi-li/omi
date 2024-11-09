@@ -18,6 +18,9 @@ type Consumer struct {
 	messageChan chan []byte
 }
 
+func (consumer *Consumer) SetCapacity(capacity int) {
+	consumer.messageChan = make(chan []byte, capacity)
+}
 func (consumer *Consumer) AddHandler(handler func(message []byte)) {
 	consumer.handler = handler
 }
