@@ -1,7 +1,6 @@
 package omiweb
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -11,19 +10,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func modifyPathAndGetTargetHost(r *http.Request, router *Router, isReverseProxy bool) string {
-	if !isReverseProxy {
-		serverName := strings.Split(r.URL.Path, "/")[1]
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
-		host := router.getAddress(serverName)
-		r.URL.Host = host
-		return host
-	} else {
-		fmt.Println(r.Host)
-		host := router.getAddress(r.Host)
-		r.URL.Host = host
-		return host
-	}
+func modifyPathAndGetTargetHost(r *http.Request, router *Router) string {
+	serverName := strings.Split(r.URL.Path, "/")[1]
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
+	host := router.getAddress(serverName)
+	r.URL.Host = host
+	return host
+
 }
 
 func isWebSocketRequest(r *http.Request) bool {
@@ -34,11 +27,11 @@ func isWebSocketRequest(r *http.Request) bool {
 }
 
 // 处理 HTTP 请求
-func httpProxy(w http.ResponseWriter, r *http.Request, router *Router, isReverseProxy bool) {
+func httpProxy(w http.ResponseWriter, r *http.Request, router *Router) {
 	if isWebSocketRequest(r) {
 		return
 	}
-	host := modifyPathAndGetTargetHost(r, router, isReverseProxy)
+	host := modifyPathAndGetTargetHost(r, router)
 	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
 		Host:   host,
@@ -48,7 +41,7 @@ func httpProxy(w http.ResponseWriter, r *http.Request, router *Router, isReverse
 
 var upgrader = websocket.Upgrader{}
 
-func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router, isReverseProxy bool) {
+func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router) {
 	if !isWebSocketRequest(r) {
 		return
 	}
@@ -60,7 +53,7 @@ func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router, isRe
 	}
 	defer clientConn.Close()
 
-	modifyPathAndGetTargetHost(r, router, isReverseProxy)
+	modifyPathAndGetTargetHost(r, router)
 
 	r.URL.Scheme = "ws"
 

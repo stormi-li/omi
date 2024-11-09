@@ -44,8 +44,8 @@ func (webServer *WebServer) EmbedSource(embeddedSource embed.FS) {
 func (webServer *WebServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) > 0 && webServer.router.Has(parts[1]) {
-		httpProxy(w, r, webServer.router, false)
-		websocketProxy(w, r, webServer.router, false)
+		httpProxy(w, r, webServer.router)
+		websocketProxy(w, r, webServer.router)
 		return
 	}
 

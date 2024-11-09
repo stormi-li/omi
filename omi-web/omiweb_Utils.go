@@ -6,37 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 )
-
-// 获取当前时间并转换为 UTC 字符串
-func getCurrentTimeString() string {
-	currentTime := time.Now().UTC() // 设置为 UTC
-	return currentTime.Format("2006-01-02 15:04:05")
-}
-
-// 将时间字符串解析为 UTC 时间
-func parseTimeString(timeString string) (time.Time, error) {
-	layout := "2006-01-02 15:04:05"
-	parsedTime, err := time.Parse(layout, timeString)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return parsedTime.UTC(), nil // 设置为 UTC
-}
-
-// 比较字符串时间和当前时间，判断是否超过 2 秒
-func isMoreThanTwoSecondsAgo(timeString string) bool {
-	parsedTime, err := parseTimeString(timeString)
-	if err != nil {
-		return true // 如果解析出错，直接返回 true
-	}
-
-	currentTime := time.Now().UTC() // 统一设置为 UTC
-	twoSecondsLater := parsedTime.Add(2 * time.Second)
-
-	return currentTime.After(twoSecondsLater)
-}
 
 func copyResource(src string) {
 	err := copyDir(src, target_path)

@@ -18,12 +18,3 @@ func (c *Client) NewWebServer(serverName string, weight int) *WebServer {
 func (c *Client) GenerateTemplate() {
 	copyResource(getSourceFilePath() + source_path)
 }
-
-// func (c *Client) NewReverseProxyServer(serverName string) *ReverseProxyServer {
-// 	return &ReverseProxyServer{
-// 		router:       newRouter(c.omiWebClient.NewSearcher()),
-// 		omiWebClient: c.omiWebClient,
-// 		upgrader:     websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
-// 		serverName:   serverName,
-// 	}
-// }
