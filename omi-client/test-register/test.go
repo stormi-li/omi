@@ -18,5 +18,9 @@ func main() {
 	r.Data["database"] = "USER"
 	r.Data["password"] = "12982397StrongPassw0rd"
 	r.Register("118.25.196.166:3933")
+	r = omiC.NewRegister("redis", 1)
+	r.Register("118.25.196.166:6379")
+	r = omiC.NewRegister("redis1", 1)
+	r.Register("118.25.196.166:6379")
 	select {}
 }

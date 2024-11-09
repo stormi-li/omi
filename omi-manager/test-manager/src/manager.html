@@ -45,11 +45,9 @@
             transition: box-shadow 0.3s ease;
         }
 
-
         .search-input:focus {
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
-
 
         /* 导航栏样式 */
         .nav-bar {
@@ -153,7 +151,7 @@
 
     <!-- 搜索框 -->
     <div class="search-container">
-        <input type="text" class="search-input" placeholder="Search..." id="search-box" onkeydown="handleSearch(event)">
+        <input type="text" class="search-input" placeholder="Search..." id="search-box" oninput="handleSearch()">
     </div>
 
     <!-- 导航栏 -->
@@ -168,97 +166,71 @@
     </div>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const query = params.get("query");
-        document.getElementById("search-box").value = `${query}`;
-        // changeContent("All")
+        let currentData = []; // 存储当前数据的全局变量
+        let currentType = ''; // 当前激活的类型
 
         function changeContent(type) {
-            // 移除当前激活的样式
-
+            currentType = type;
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-            });
-            // 设置新的激活项
-            document.querySelectorAll('.nav-item').forEach(item => {
                 if (item.textContent === type) {
                     item.classList.add('active');
                 }
             });
 
-            var request
-            if (type == "Server") {
-                request = "GetServerNodes"
-            }
-            if (type == "Web") {
-                request = "GetWebNodes"
-            }
-            if (type == "Config") {
-                request = "GetConfigNodes"
-            }
+            let request;
+            if (type === "Server") request = "GetServerNodes";
+            if (type === "Web") request = "GetWebNodes";
+            if (type === "Config") request = "GetConfigNodes";
 
-            let path = 'http://' + window.location.host + '/' + request
-            // 获取数组数据'            
-            // 使用 fetch 向后端发送请求
-
-            fetch(path, {
-                method: 'GET', // 或者 'POST'，根据需求调整
-                headers: {
-                    'Content-Type': 'application/json', // 根据后端要求设定
-                },
-            })
+            const path = 'http://' + window.location.host + '/' + request;
+            fetch(path, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok ' + response.statusText);
-                    }
-                    return response.json(); // 如果返回的是 JSON 数据
+                    if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
+                    return response.json();
                 })
                 .then(data => {
-                    console.log('Data received:', data);
-                    const dataContainer = document.getElementById('data-container');
-                    dataContainer.innerHTML = ''; // 清空容器
-
-                    let stype = "table_row_1";
-                    let previousName = ""
-
-                    // 遍历 data 数组，提取服务类型、地址和权重
-                    data.forEach(item => {
-                        const [name, address, weight] = item;
-
-                        // 切换行样式
-                        if (name !== previousName) {
-                            stype = (stype === "table_row_1") ? "table_row_2" : "table_row_1";
-                            previousName = name;
-                        }
-
-                        // 生成表格行的 HTML
-                        const rowHTML = `
-                <div class="table_row" id="${stype}">
-                    <span class="type">${type}</span>
-                    <span class="name">${name}</span>
-                    <span class="address">${address}</span>
-                    <span class="weight">${weight}</span>
-                </div>
-            `;
-
-                        // 将行内容添加到容器
-                        dataContainer.innerHTML += rowHTML;
-                    });
+                    currentData = data; // 将返回数据存储到全局变量
+                    displayData(); // 调用显示数据函数
                 })
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
-
-
         }
 
-        function handleSearch(event) {
-            if (event.key === "Enter") {  // 检查是否按下了回车键
-                const query = document.querySelector("#search-box").value;  // 获取搜索框内容
-                const url = `manager.html?query=${encodeURIComponent(query)}`;  // 将内容编码并附加到 URL
-                window.location.href = url;  // 跳转到目标页面
-            }
+        function displayData() {
+            const dataContainer = document.getElementById('data-container');
+            dataContainer.innerHTML = '';
+
+            const searchText = document.getElementById("search-box").value.toLowerCase();
+            let stype = "table_row_1";
+            let previousName = "";
+
+            currentData.filter(item => item[0].toLowerCase().startsWith(searchText))
+                .forEach(item => {
+                    const [name, address, weight] = item;
+
+                    if (name !== previousName) {
+                        stype = (stype === "table_row_1") ? "table_row_2" : "table_row_1";
+                        previousName = name;
+                    }
+
+                    const rowHTML = `
+                        <div class="table_row" id="${stype}">
+                            <span class="type">${currentType}</span>
+                            <span class="name">${name}</span>
+                            <span class="address">${address}</span>
+                            <span class="weight">${weight}</span>
+                        </div>
+                    `;
+                    dataContainer.innerHTML += rowHTML;
+                });
         }
+
+        function handleSearch() {
+            displayData(); // 每次搜索输入更新时重新渲染数据
+        }
+
     </script>
 </body>
 
