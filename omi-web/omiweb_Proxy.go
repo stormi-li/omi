@@ -1,6 +1,7 @@
 package omiweb
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -10,10 +11,34 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+func modifyPathAndGetTargetHost(r *http.Request, router *Router, isReverseProxy bool) string {
+	if !isReverseProxy {
+		serverName := strings.Split(r.URL.Path, "/")[1]
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
+		host := router.getAddress(serverName)
+		r.URL.Host = host
+		return host
+	} else {
+		fmt.Println(r.Host)
+		host := router.getAddress(r.Host)
+		r.URL.Host = host
+		return host
+	}
+}
+
+func isWebSocketRequest(r *http.Request) bool {
+	// 判断请求头中是否包含 WebSocket 升级请求特有的字段
+	return r.Header.Get("Upgrade") == "websocket" &&
+		r.Header.Get("Connection") == "Upgrade" &&
+		r.Header.Get("Sec-WebSocket-Key") != ""
+}
+
 // 处理 HTTP 请求
-func httpProxy(w http.ResponseWriter, r *http.Request, router *Router) {
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix_http_proxy)
-	host := modifyPathAndGetTargetHost(r, router)
+func httpProxy(w http.ResponseWriter, r *http.Request, router *Router, isReverseProxy bool) {
+	if isWebSocketRequest(r) {
+		return
+	}
+	host := modifyPathAndGetTargetHost(r, router, isReverseProxy)
 	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
 		Host:   host,
@@ -21,17 +46,12 @@ func httpProxy(w http.ResponseWriter, r *http.Request, router *Router) {
 	proxy.ServeHTTP(w, r)
 }
 
-func modifyPathAndGetTargetHost(r *http.Request, router *Router) string {
-	serverName := strings.Split(r.URL.Path, "/")[1]
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
-	host := router.getAddress(serverName)
-	r.URL.Host = host
-	return host
-}
-
 var upgrader = websocket.Upgrader{}
 
-func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router) {
+func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router, isReverseProxy bool) {
+	if !isWebSocketRequest(r) {
+		return
+	}
 	// 将客户端升级为WebSocket
 	clientConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -40,9 +60,7 @@ func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router) {
 	}
 	defer clientConn.Close()
 
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix_websocket_proxy)
-
-	modifyPathAndGetTargetHost(r, router)
+	modifyPathAndGetTargetHost(r, router, isReverseProxy)
 
 	r.URL.Scheme = "ws"
 

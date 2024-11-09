@@ -20,7 +20,7 @@ func NewConfigClient(opts *redis.Options) *omiclient.Client {
 }
 
 func NewOmiweb(opts *redis.Options) *omiweb.Client {
-	return omiweb.NewClient(redis.NewClient(opts), NewWebClient(opts))
+	return omiweb.NewClient(redis.NewClient(opts), NewWebClient(opts), NewServerClient(opts))
 }
 
 func NewManager(opts *redis.Options) *ominager.Client {

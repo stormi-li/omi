@@ -6,14 +6,24 @@ import (
 )
 
 type Client struct {
-	redisClient *redis.Client
-	omiClient   *omiclient.Client
+	redisClient     *redis.Client
+	omiWebClient    *omiclient.Client
+	omiServerClient *omiclient.Client
 }
 
-func (omiweb *Client) NewWebServer(serverName string, weight int) *WebServer {
-	return newWebServer(omiweb.redisClient, omiweb.omiClient, serverName, weight)
+func (c *Client) NewWebServer(serverName string, weight int) *WebServer {
+	return newWebServer(c.redisClient, c.omiWebClient, c.omiServerClient, serverName, weight)
 }
 
-func (omiweb *Client) GenerateTemplate() {
+func (c *Client) GenerateTemplate() {
 	copyResource(getSourceFilePath() + source_path)
 }
+
+// func (c *Client) NewReverseProxyServer(serverName string) *ReverseProxyServer {
+// 	return &ReverseProxyServer{
+// 		router:       newRouter(c.omiWebClient.NewSearcher()),
+// 		omiWebClient: c.omiWebClient,
+// 		upgrader:     websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
+// 		serverName:   serverName,
+// 	}
+// }
