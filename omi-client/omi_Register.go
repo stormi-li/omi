@@ -7,12 +7,10 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	omipc "github.com/stormi-li/omi/omi-ipc"
 )
 
 type Register struct {
 	redisClient *redis.Client
-	omipcClient *omipc.Client
 	serverName  string
 	address     string
 	weight      int

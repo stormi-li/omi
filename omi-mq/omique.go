@@ -5,6 +5,6 @@ import (
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
-func NewClient(redisClient *redis.Client, namespace string) *Client {
-	return newClient(redisClient, omiclient.Config, omiclient.Prefix_Config)
+func NewClient(opts *redis.Options) *Client {
+	return newClient(redis.NewClient(opts), omiclient.Config, omiclient.Prefix_Config)
 }

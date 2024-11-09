@@ -9,33 +9,33 @@ import (
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
-type Manager struct {
+type NodeSearcher struct {
 	serverSearcher *omiclient.Searcher
 	webSearcher    *omiclient.Searcher
 	configSearcher *omiclient.Searcher
 }
 
-func NewManager(serverSearcher *omiclient.Searcher, webSearcher *omiclient.Searcher, configSearcher *omiclient.Searcher) *Manager {
-	return &Manager{
+func NewManager(serverSearcher *omiclient.Searcher, webSearcher *omiclient.Searcher, configSearcher *omiclient.Searcher) *NodeSearcher {
+	return &NodeSearcher{
 		serverSearcher: serverSearcher,
 		webSearcher:    webSearcher,
 		configSearcher: configSearcher,
 	}
 }
 
-func (manager *Manager) GetServerNodes() map[string]map[string]map[string]string {
+func (manager *NodeSearcher) GetServerNodes() map[string]map[string]map[string]string {
 	return manager.serverSearcher.SearchAllServers()
 }
 
-func (manager *Manager) GetWebNodes() map[string]map[string]map[string]string {
+func (manager *NodeSearcher) GetWebNodes() map[string]map[string]map[string]string {
 	return manager.webSearcher.SearchAllServers()
 }
 
-func (manager *Manager) GetConfigNodes() map[string]map[string]map[string]string {
+func (manager *NodeSearcher) GetConfigNodes() map[string]map[string]map[string]string {
 	return manager.configSearcher.SearchAllServers()
 }
 
-func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
+func (manager *NodeSearcher) Handler(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
 	// 获取请求的路径并去掉开头的 '/'
 	path := strings.TrimPrefix(r.URL.Path, "/")

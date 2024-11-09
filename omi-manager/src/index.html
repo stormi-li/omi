@@ -65,16 +65,15 @@
 
 <body>
 
-    <!-- Logo -->
     <div class="logo">omi</div>
 
-    <!-- 搜索框 -->
     <div class="search-container">
-        <input type="text" class="search-box" placeholder="namespace" onkeydown="handleSearch(event)">
+        <input type="text" class="search-box" placeholder="Search..." onkeydown="handleSearch(event)">
     </div>
 
     <script>
-        
+
+
         function handleSearch(event) {
             if (event.key === "Enter") {  // 检查是否按下了回车键
                 const query = document.querySelector(".search-box").value;  // 获取搜索框内容

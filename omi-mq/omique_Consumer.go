@@ -13,16 +13,22 @@ type Consumer struct {
 	omiClient   *omiclient.Client
 	channel     string
 	address     string
+	weight      int
+	handler     func(message []byte)
 	messageChan chan []byte
 }
 
-func (consumer *Consumer) Listen(address string, weight int, handler func(message []byte)) {
-	consumer.address = address
-	go consumer.omiClient.NewRegister(consumer.channel, weight).Register(address)
-	consumer.start(handler)
+func (consumer *Consumer) AddHandler(handler func(message []byte)) {
+	consumer.handler = handler
 }
 
-func (consumer *Consumer) start(handler func(message []byte)) {
+func (consumer *Consumer) Listen(address string) {
+	consumer.address = address
+	go consumer.omiClient.NewRegister(consumer.channel, consumer.weight).Register(address)
+	consumer.start()
+}
+
+func (consumer *Consumer) start() {
 	go func() {
 		listener, err := net.Listen("tcp", ":"+strings.Split(consumer.address, ":")[1])
 		if err != nil {
@@ -39,7 +45,7 @@ func (consumer *Consumer) start(handler func(message []byte)) {
 	}()
 	for {
 		msg := <-consumer.messageChan
-		handler(msg)
+		consumer.handler(msg)
 	}
 }
 func (consumer *Consumer) handleConnection(conn net.Conn) {

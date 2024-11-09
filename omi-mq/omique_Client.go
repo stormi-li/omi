@@ -13,10 +13,11 @@ func newClient(redisClient *redis.Client, serverType string, prefix string) *Cli
 	return &Client{omiClient: omiclient.NewClient(redisClient, serverType, prefix)}
 }
 
-func (c *Client) NewConsumer(channel string) *Consumer {
+func (c *Client) NewConsumer(channel string, weight int) *Consumer {
 	return &Consumer{
 		omiClient:   c.omiClient,
 		channel:     channel,
+		weight:      weight,
 		messageChan: make(chan []byte, 1000000),
 	}
 }

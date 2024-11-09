@@ -8,12 +8,10 @@ import (
 	"math/rand"
 
 	"github.com/go-redis/redis/v8"
-	omipc "github.com/stormi-li/omi/omi-ipc"
 )
 
 type Searcher struct {
 	redisClient *redis.Client
-	omipcClient *omipc.Client
 	namespace   string
 	ctx         context.Context
 }
@@ -26,6 +24,11 @@ func (searcher *Searcher) SearchByName(serverName string) map[string]map[string]
 		res[key] = jsonStrToMap(data)
 	}
 	return res
+}
+
+func (searcher *Searcher) IsAlive(serverName string, address string) bool {
+	data, _ := searcher.redisClient.Get(searcher.ctx, searcher.namespace+serverName+namespace_separator+address).Result()
+	return data != ""
 }
 
 func (searcher *Searcher) SearchAllServers() map[string]map[string]map[string]string {
@@ -61,7 +64,7 @@ func (searcher *Searcher) SearchByLoadBalancing(serverName string) (string, map[
 }
 
 func split(address string) []string {
-	index := strings.Index(address, omipc.NamespaceSeparator)
+	index := strings.Index(address, namespace_separator)
 	if index == -1 {
 		return nil
 	}

@@ -13,6 +13,10 @@ func main() {
 		Addr:     redisAddr,
 		Password: password,
 	})
-	omiC.NewRegister("redis", 2).Register("118.25.196.166:6378")
+	r := omiC.NewRegister("mysql", 1)
+	r.Data["username"] = "root"
+	r.Data["database"] = "USER"
+	r.Data["password"] = "12982397StrongPassw0rd"
+	r.Register("118.25.196.166:3933")
 	select {}
 }

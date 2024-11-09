@@ -19,7 +19,15 @@ type Client struct {
 //go:embed src/*
 var embedSource embed.FS
 
-func (c *Client) Start(address string) {
+func (c *Client) Listen(address string) {
+	c.listen(address, true)
+}
+
+func (c *Client) Develop(address string) {
+	c.listen(address, false)
+}
+
+func (c *Client) listen(address string, embedModel bool) {
 
 	manager := NewManager(c.serverSearcher, c.webSearcher, c.configSearcher)
 
@@ -32,12 +40,15 @@ func (c *Client) Start(address string) {
 
 		filePath := r.URL.Path
 		if r.URL.Path == "/" {
-			filePath = "src/index.html"
+			filePath = "/index.html"
 		}
 		filePath = "src" + filePath
 		var data []byte
-		// data, _ = embedSource.ReadFile(filePath)
-		data, _ = os.ReadFile(filePath)
+		if embedModel {
+			data, _ = embedSource.ReadFile(filePath)
+		} else {
+			data, _ = os.ReadFile(filePath)
+		}
 		w.Write(data)
 	})
 
