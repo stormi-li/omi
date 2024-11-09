@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
-	"github.com/stormi-li/omi"
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
@@ -18,18 +17,19 @@ type WebServer struct {
 	redisClient *redis.Client
 	omiClient   *omiclient.Client
 	serverName  string
+	weight      int
 	upgrader    websocket.Upgrader
 	embedSource embed.FS
 	embedModel  bool
 }
 
-func newWebServer(redisClient *redis.Client, serverName string) *WebServer {
-	omiClient := omi.NewServerClient(redisClient.Options())
+func newWebServer(redisClient *redis.Client, omiClient *omiclient.Client, serverName string, weight int) *WebServer {
 	return &WebServer{
 		router:      newRouter(omiClient.NewSearcher()),
 		redisClient: redisClient,
 		omiClient:   omiClient,
 		serverName:  serverName,
+		weight:      weight,
 		upgrader:    websocket.Upgrader{},
 	}
 }
@@ -50,35 +50,25 @@ func (webServer *WebServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filePath := r.URL.Path
 	if r.URL.Path == "/" {
-		var data []byte
-		var err error
-		if webServer.embedModel {
-			data, err = webServer.embedSource.ReadFile(target_path + index_path)
-		} else {
-			data, err = os.ReadFile(target_path + index_path)
-		}
-		if err != nil {
-			http.Error(w, "无法找到 "+index_path+" 文件", http.StatusNotFound)
-			return
-		}
-		w.Write(data)
-		return
+		filePath = index_path
 	}
-
+	filePath = target_path + filePath
+	var data []byte
 	if webServer.embedModel {
-		r.URL.Path = target_path + r.URL.Path
-		http.FileServer(http.FS(webServer.embedSource)).ServeHTTP(w, r)
+		data, _ = webServer.embedSource.ReadFile(filePath)
 	} else {
-		http.ServeFile(w, r, target_path+r.URL.Path)
+		data, _ = os.ReadFile(filePath)
 	}
+	w.Write(data)
 }
 
-func (webServer *WebServer) Listen(address string, weight int) {
+func (webServer *WebServer) Listen(address string) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		webServer.handleFunc(w, r)
 	})
-	omi.NewWebClient(webServer.redisClient.Options()).NewRegister(webServer.serverName, address).Start(weight, map[string]string{})
+	webServer.omiClient.NewRegister(webServer.serverName, webServer.weight).Register(address)
 	log.Println("omi web server: " + webServer.serverName + " is running on http://" + address)
 	err := http.ListenAndServe(":"+strings.Split(address, ":")[1], nil)
 	if err != nil {

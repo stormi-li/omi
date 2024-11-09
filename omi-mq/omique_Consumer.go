@@ -18,7 +18,7 @@ type Consumer struct {
 
 func (consumer *Consumer) Listen(address string, weight int, handler func(message []byte)) {
 	consumer.address = address
-	go consumer.omiClient.NewRegister(consumer.channel, address).Start(weight, map[string]string{"server type": "MQ"})
+	go consumer.omiClient.NewRegister(consumer.channel, weight).Register(address)
 	consumer.start(handler)
 }
 

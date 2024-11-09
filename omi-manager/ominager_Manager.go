@@ -6,44 +6,33 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Manager struct {
-	serverClient   *omiclient.Client
-	webClient      *omiclient.Client
-	configClient   *omiclient.Client
 	serverSearcher *omiclient.Searcher
 	webSearcher    *omiclient.Searcher
 	configSearcher *omiclient.Searcher
 }
 
-func NewManager(opts *redis.Options) *Manager {
-	serverClient := omi.NewServerClient(opts)
-	webClient := omi.NewWebClient(opts)
-	configClient := omi.NewConfigClient(opts)
+func NewManager(serverSearcher *omiclient.Searcher, webSearcher *omiclient.Searcher, configSearcher *omiclient.Searcher) *Manager {
 	return &Manager{
-		serverClient:   serverClient,
-		webClient:      webClient,
-		configClient:   configClient,
-		serverSearcher: serverClient.NewSearcher(),
-		webSearcher:    webClient.NewSearcher(),
-		configSearcher: configClient.NewSearcher(),
+		serverSearcher: serverSearcher,
+		webSearcher:    webSearcher,
+		configSearcher: configSearcher,
 	}
 }
 
 func (manager *Manager) GetServerNodes() map[string]map[string]map[string]string {
-	return manager.serverSearcher.AllServers()
+	return manager.serverSearcher.SearchAllServers()
 }
 
 func (manager *Manager) GetWebNodes() map[string]map[string]map[string]string {
-	return manager.webSearcher.AllServers()
+	return manager.webSearcher.SearchAllServers()
 }
 
 func (manager *Manager) GetConfigNodes() map[string]map[string]map[string]string {
-	return manager.configSearcher.AllServers()
+	return manager.configSearcher.SearchAllServers()
 }
 
 func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
@@ -54,17 +43,28 @@ func (manager *Manager) Handler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(path, "/")
 
 	if parts[0] == command_GetWebNodes {
-		w.Write([]byte(mapToJsonStr(manager.GetWebNodes())))
+		w.Write([]byte(toJsonStr(manager.GetWebNodes())))
 	}
 	if parts[0] == command_GetServerNodes {
-		w.Write([]byte(mapToJsonStr(manager.GetServerNodes())))
+		w.Write([]byte(toJsonStr(manager.GetServerNodes())))
 	}
 	if parts[0] == command_GetConfigNodes {
-		w.Write([]byte(mapToJsonStr(manager.GetConfigNodes())))
+		w.Write([]byte(toJsonStr(manager.GetConfigNodes())))
 	}
 }
 
-func mapToJsonStr(data map[string]map[string]map[string]string) string {
+func toJsonStr(nodes map[string]map[string]map[string]string) string {
+	res := [][]string{}
+	for name, addresses := range nodes {
+		for address, details := range addresses {
+			weight := details["weight"]
+			res = append(res, []string{name, address, weight})
+		}
+	}
+	return sliceToJsonStr(res)
+}
+
+func sliceToJsonStr(data [][]string) string {
 	jsonStr, _ := json.MarshalIndent(data, " ", "  ")
 	return string(jsonStr)
 }

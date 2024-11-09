@@ -4,13 +4,16 @@ import (
 	"embed"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
-	"github.com/go-redis/redis/v8"
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
 type Client struct {
-	opts *redis.Options
+	serverSearcher *omiclient.Searcher
+	webSearcher    *omiclient.Searcher
+	configSearcher *omiclient.Searcher
 }
 
 //go:embed src/*
@@ -18,7 +21,7 @@ var embedSource embed.FS
 
 func (c *Client) Start(address string) {
 
-	manager := NewManager(c.opts)
+	manager := NewManager(c.serverSearcher, c.webSearcher, c.configSearcher)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		part := strings.Split(r.URL.Path, "/")
@@ -26,12 +29,16 @@ func (c *Client) Start(address string) {
 			manager.Handler(w, r)
 			return
 		}
-		filePath := "src" + r.URL.Path
+
+		filePath := r.URL.Path
 		if r.URL.Path == "/" {
 			filePath = "src/index.html"
 		}
-		http.ServeFile(w, r, filePath)
-		// http.FileServer(http.FS(embedSource)).ServeHTTP(w, r)
+		filePath = "src" + filePath
+		var data []byte
+		// data, _ = embedSource.ReadFile(filePath)
+		data, _ = os.ReadFile(filePath)
+		w.Write(data)
 	})
 
 	log.Println("omi web manager server is running on http://" + address)

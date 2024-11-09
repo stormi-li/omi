@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -50,24 +49,6 @@ func getSourceFilePath() string {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(filename)
 	return dir
-}
-
-func getStringAfterSecondSlash(input string) string {
-	// 找到第一个 "/" 的位置
-	firstSlashIndex := strings.Index(input, "/")
-	if firstSlashIndex == -1 {
-		return ""
-	}
-
-	// 在第一个 "/" 之后的字符串中再查找第二个 "/"
-	secondSlashIndex := strings.Index(input[firstSlashIndex+1:], "/")
-	if secondSlashIndex == -1 {
-		return ""
-	}
-
-	// 计算第二个 "/" 的实际位置并截取子字符串
-	secondSlashIndex += firstSlashIndex + 1
-	return input[secondSlashIndex+1:]
 }
 
 // copyFile 复制单个文件

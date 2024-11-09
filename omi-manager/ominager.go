@@ -1,7 +1,11 @@
 package ominager
 
-import "github.com/go-redis/redis/v8"
+import omiclient "github.com/stormi-li/omi/omi-client"
 
-func NewClient(opts *redis.Options) *Client {
-	return &Client{opts: opts}
+func NewClient(serverSearcher *omiclient.Searcher, webSearcher *omiclient.Searcher, configSearcher *omiclient.Searcher) *Client {
+	return &Client{
+		serverSearcher: serverSearcher,
+		webSearcher:    webSearcher,
+		configSearcher: configSearcher,
+	}
 }

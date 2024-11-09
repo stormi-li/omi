@@ -23,15 +23,15 @@ func NewClient(redisClient *redis.Client, serverType string, prefix string) *Cli
 	}
 }
 
-func (c *Client) NewRegister(serverName string, address string) *Register {
+func (c *Client) NewRegister(serverName string, weight int) *Register {
 	return &Register{
-		redisClient:      c.redisClient,
-		omipcClient:      c.omipcClient,
-		namespace:        c.namespace,
-		serverName:       serverName,
-		ctx:              context.Background(),
-		address:          address,
-		redisChannelName: serverName + omipc.NamespaceSeparator + address,
+		redisClient: c.redisClient,
+		omipcClient: c.omipcClient,
+		serverName:  serverName,
+		weight:      weight,
+		Data:        map[string]string{},
+		namespace:   c.namespace,
+		ctx:         context.Background(),
 	}
 }
 

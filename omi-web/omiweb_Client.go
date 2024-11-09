@@ -10,8 +10,8 @@ type Client struct {
 	omiClient   *omiclient.Client
 }
 
-func (omiweb *Client) NewWebServer(serverName string) *WebServer {
-	return newWebServer(omiweb.redisClient, serverName)
+func (omiweb *Client) NewWebServer(serverName string, weight int) *WebServer {
+	return newWebServer(omiweb.redisClient, omiweb.omiClient, serverName, weight)
 }
 
 func (omiweb *Client) GenerateTemplate() {

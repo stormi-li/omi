@@ -2,13 +2,12 @@ package omiweb
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
-func NewClient(opts *redis.Options) *Client {
-	omiClient := omi.NewServerClient(opts)
+func NewClient(redisClient *redis.Client, omiClient *omiclient.Client) *Client {
 	return &Client{
-		redisClient: redis.NewClient(opts),
+		redisClient: redisClient,
 		omiClient:   omiClient,
 	}
 }

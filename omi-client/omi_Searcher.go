@@ -28,7 +28,7 @@ func (searcher *Searcher) SearchByName(serverName string) map[string]map[string]
 	return res
 }
 
-func (searcher *Searcher) AllServers() map[string]map[string]map[string]string {
+func (searcher *Searcher) SearchAllServers() map[string]map[string]map[string]string {
 	keys := getKeysByNamespace(searcher.redisClient, searcher.namespace[:len(searcher.namespace)-1])
 	res := map[string]map[string]map[string]string{}
 	for _, key := range keys {

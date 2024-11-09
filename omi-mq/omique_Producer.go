@@ -47,12 +47,8 @@ func (producer *Producer) Publish(message []byte) error {
 				break
 			}
 		}
-		if producer.conn == nil {
-			err = producer.connect()
-		}
-		if err != nil {
-			time.Sleep(const_retryWaitTime)
-		}
+		err = producer.connect()
+		time.Sleep(const_retryWaitTime)
 		if retryCount == const_maxRetryCount {
 			break
 		}
