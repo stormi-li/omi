@@ -34,7 +34,7 @@ func newWebServer(redisClient *redis.Client, omiClient *omiclient.Client, server
 	}
 }
 
-func (webServer *WebServer) SetEmbedSource(embedSource embed.FS) {
+func (webServer *WebServer) EmbedSource(embedSource embed.FS) {
 	webServer.embedSource = embedSource
 	webServer.embedModel = true
 }
