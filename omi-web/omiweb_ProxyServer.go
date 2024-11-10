@@ -20,7 +20,7 @@ func (proxyServer *ProxyServer) handleFunc(w http.ResponseWriter, r *http.Reques
 	websocketProxy(w, r)
 }
 
-func (proxyServer *ProxyServer) HttpProxy(address string) {
+func (proxyServer *ProxyServer) StartHttpProxy(address string) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		proxyServer.handleFunc(w, r)
 	})

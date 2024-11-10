@@ -11,5 +11,5 @@ var password = "12982397StrongPassw0rd"
 func main() {
 	omiweb := omi.NewOmiweb(&redis.Options{Addr: redisAddr, Password: password})
 	ps := omiweb.NewProxyServer("http代理")
-	ps.HttpProxy("118.25.196.166:80")
+	ps.StartHttpProxy("118.25.196.166:80")
 }
