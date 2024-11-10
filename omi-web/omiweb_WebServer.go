@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/websocket"
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
@@ -19,7 +18,6 @@ type WebServer struct {
 	omiServerClient *omiclient.Client
 	serverName      string
 	weight          int
-	upgrader        websocket.Upgrader
 	embeddedSource  embed.FS
 	embedModel      bool
 }
@@ -32,7 +30,6 @@ func newWebServer(redisClient *redis.Client, omiWebClient, omiServerClient *omic
 		omiServerClient: omiServerClient,
 		serverName:      serverName,
 		weight:          weight,
-		upgrader:        websocket.Upgrader{},
 	}
 }
 
@@ -44,8 +41,9 @@ func (webServer *WebServer) EmbedSource(embeddedSource embed.FS) {
 func (webServer *WebServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) > 0 && webServer.router.Has(parts[1]) {
-		httpProxy(w, r, webServer.router)
-		websocketProxy(w, r, webServer.router)
+		pathRequestResolution(r, webServer.router)
+		httpProxy(w, r)
+		websocketProxy(w, r)
 		return
 	}
 

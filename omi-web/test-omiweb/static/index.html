@@ -12,16 +12,21 @@
 
     <button id="httpButton">Send HTTP Request</button>
     <button id="wsButton">Send WebSocket Request</button>
-
+    <button id="home">Jump to home</button>
     <div id="responseContainer">
         <h2>Response:</h2>
         <pre id="responseText">No response yet...</pre>
     </div>
 
     <script>
+        let httqrequest = "helloworldserver/request"
+        let wsrequest = "helloworldwebsocket/request"
+        let srcrequest = "home.html"
+
+        document.getElementById("home").addEventListener("click", () => { window.location.href = srcrequest })
         // HTTP 请求处理函数
         document.getElementById("httpButton").addEventListener("click", () => {
-            fetch("helloworldserver/request") // HTTP 请求的 URL
+            fetch(httqrequest) // HTTP 请求的 URL
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById("responseText").textContent = `HTTP Response: ${data}`;
@@ -34,7 +39,7 @@
 
         // WebSocket 请求处理函数
         document.getElementById("wsButton").addEventListener("click", () => {
-            const socket = new WebSocket("helloworldwebsocket/request");
+            const socket = new WebSocket(wsrequest);
 
             // 连接成功时
             socket.onopen = () => {

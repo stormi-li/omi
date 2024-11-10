@@ -10,13 +10,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func modifyPathAndGetTargetHost(r *http.Request, router *Router) string {
+func pathRequestResolution(r *http.Request, router *Router) {
 	serverName := strings.Split(r.URL.Path, "/")[1]
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
 	host := router.getAddress(serverName)
 	r.URL.Host = host
-	return host
+}
 
+func domainNameResolution(r *http.Request, router *Router) {
+	host := router.getAddress(strings.Split(r.Host, ":")[0])
+	r.URL.Host = host
 }
 
 func isWebSocketRequest(r *http.Request) bool {
@@ -27,21 +30,21 @@ func isWebSocketRequest(r *http.Request) bool {
 }
 
 // 处理 HTTP 请求
-func httpProxy(w http.ResponseWriter, r *http.Request, router *Router) {
+func httpProxy(w http.ResponseWriter, r *http.Request) {
 	if isWebSocketRequest(r) {
 		return
 	}
-	host := modifyPathAndGetTargetHost(r, router)
+
 	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
-		Host:   host,
+		Host:   r.URL.Host,
 	})
 	proxy.ServeHTTP(w, r)
 }
 
 var upgrader = websocket.Upgrader{}
 
-func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router) {
+func websocketProxy(w http.ResponseWriter, r *http.Request) {
 	if !isWebSocketRequest(r) {
 		return
 	}
@@ -52,8 +55,6 @@ func websocketProxy(w http.ResponseWriter, r *http.Request, router *Router) {
 		return
 	}
 	defer clientConn.Close()
-
-	modifyPathAndGetTargetHost(r, router)
 
 	r.URL.Scheme = "ws"
 

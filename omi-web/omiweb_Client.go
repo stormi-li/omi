@@ -18,3 +18,11 @@ func (c *Client) NewWebServer(serverName string, weight int) *WebServer {
 func (c *Client) GenerateTemplate() {
 	copyResource(getSourceFilePath() + source_path)
 }
+
+func (c *Client) NewProxyServer(serverName string) *ProxyServer {
+	return &ProxyServer{
+		router:       newRouter(c.omiWebClient.NewSearcher()),
+		omiWebClient: c.omiWebClient,
+		serverName:   serverName,
+	}
+}
