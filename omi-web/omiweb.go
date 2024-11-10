@@ -5,11 +5,14 @@ import (
 	omiclient "github.com/stormi-li/omi/omi-client"
 )
 
-func NewClient(redisClient *redis.Client, omiWebClient,omiServerClient *omiclient.Client) *Client {
+func NewClient(redisClient *redis.Client, omiWebClient, omiServerClient *omiclient.Client) *Client {
 	return &Client{
-		redisClient: redisClient,
-		omiWebClient:   omiWebClient,
+		redisClient:     redisClient,
+		omiWebClient:    omiWebClient,
 		omiServerClient: omiServerClient,
 	}
 }
 
+func DisableLog() {
+	log_cache = false
+}

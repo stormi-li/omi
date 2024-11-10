@@ -27,6 +27,3 @@ func (c *Client) NewProxyServer(serverName string) *ProxyServer {
 	}
 }
 
-func (c *Client) DisableLog() {
-	log_cache = false
-}
