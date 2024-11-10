@@ -20,6 +20,7 @@ type WebServer struct {
 	weight          int
 	embeddedSource  embed.FS
 	embedModel      bool
+	cache           *FileCache
 }
 
 func newWebServer(redisClient *redis.Client, omiWebClient, omiServerClient *omiclient.Client, serverName string, weight int) *WebServer {
@@ -38,11 +39,19 @@ func (webServer *WebServer) EmbedSource(embeddedSource embed.FS) {
 	webServer.embedModel = true
 }
 
+func (webServer *WebServer) SetCache(cacheDir string, maxSize int) {
+	var err error
+	webServer.cache, err = NewFileCache(cacheDir, maxSize)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (webServer *WebServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) > 0 && webServer.router.Has(parts[1]) {
 		pathRequestResolution(r, webServer.router)
-		httpProxy(w, r)
+		httpProxy(w, r, webServer.cache)
 		websocketProxy(w, r)
 		return
 	}

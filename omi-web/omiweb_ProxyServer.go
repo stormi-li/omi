@@ -12,12 +12,21 @@ type ProxyServer struct {
 	router       *Router
 	omiWebClient *omiclient.Client
 	serverName   string
+	cache        *FileCache
 }
 
 func (proxyServer *ProxyServer) handleFunc(w http.ResponseWriter, r *http.Request) {
 	domainNameResolution(r, proxyServer.router)
-	httpProxy(w, r)
+	httpProxy(w, r, proxyServer.cache)
 	websocketProxy(w, r)
+}
+
+func (proxyServer *ProxyServer) SetCache(cacheDir string, maxSize int) {
+	var err error
+	proxyServer.cache, err = NewFileCache(cacheDir, maxSize)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (proxyServer *ProxyServer) StartHttpProxy(address string) {

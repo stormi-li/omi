@@ -1,6 +1,8 @@
 package omiweb
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -29,16 +31,55 @@ func isWebSocketRequest(r *http.Request) bool {
 		r.Header.Get("Sec-WebSocket-Key") != ""
 }
 
-// 处理 HTTP 请求
-func httpProxy(w http.ResponseWriter, r *http.Request) {
+// 自定义 RoundTripper 用于捕获响应数据
+type captureResponseRoundTripper struct {
+	Transport http.RoundTripper
+	cache     *FileCache
+}
+
+func (c *captureResponseRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	// 执行请求
+	resp, err := c.Transport.RoundTrip(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// 捕获响应内容
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// 恢复原始响应体以便下游处理
+	resp.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+
+	if c.cache != nil && r.Method == "GET" {
+		go c.cache.AddFile(r.URL.Path, bodyBytes)
+	}
+
+	// 返回原始响应
+	return resp, nil
+}
+
+// 代理请求并捕获响应数据
+func httpProxy(w http.ResponseWriter, r *http.Request, cache *FileCache) {
 	if isWebSocketRequest(r) {
 		return
 	}
+	if cache != nil && r.Method == "GET" && cache.ReadCache(w, r.URL.Path) {
+		return
+	}
 
-	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
+	proxyURL := &url.URL{
 		Scheme: "http",
 		Host:   r.URL.Host,
-	})
+	}
+
+	// 使用自定义的 RoundTripper 来捕获响应数据
+	proxy := httputil.NewSingleHostReverseProxy(proxyURL)
+	proxy.Transport = &captureResponseRoundTripper{Transport: http.DefaultTransport, cache: cache}
+
+	// 转发请求并处理响应
 	proxy.ServeHTTP(w, r)
 }
 
