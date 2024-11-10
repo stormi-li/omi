@@ -17,6 +17,7 @@ var password = "12982397StrongPassw0rd"
 
 func main() {
 	omi.NewServerClient(&redis.Options{Addr: redisAddr, Password: password}).NewRegister("helloworldserver", 1).Register("118.25.196.166:8081")
+	
 	http.HandleFunc("/request", requestHandler) // 注册 /request 路径的处理函数
 	fmt.Println("Server is listening on :8081")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
