@@ -8,4 +8,4 @@ const index_path = "/index.html"
 const router_refresh_interval = 2 * time.Second
 const filename_separator = "@"
 
-var enableCacheLog = true
+var log_cache = true

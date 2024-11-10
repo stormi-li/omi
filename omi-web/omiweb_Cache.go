@@ -68,7 +68,7 @@ func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
 		// 生成 URL 路径并添加到缓存列表
 		i := strings.Index(path, "@")
 		url := path[i:]
-		if enableCacheLog {
+		if log_cache {
 			log.Println("新增缓存", path)
 		}
 		cacheItem := &CacheItem{filename: url, filepath: path, size: fileSize}
@@ -111,7 +111,7 @@ func (fileCache *FileCache) AddFile(url string, data []byte) {
 	if err := os.WriteFile(cachePath, data, 0644); err != nil {
 		return
 	}
-	if enableCacheLog {
+	if log_cache {
 		log.Println("新增缓存", url)
 	}
 	// 新建缓存项并添加到 LRU 列表
@@ -133,7 +133,7 @@ func (fileCache *FileCache) removeOldest() {
 	os.Remove(cacheItem.filepath) // 删除磁盘上的缓存文件
 	delete(fileCache.itemMap, cacheItem.filename)
 	fileCache.itemList.Remove(oldest)
-	if enableCacheLog {
+	if log_cache {
 		log.Println("删除缓存", strings.ReplaceAll(cacheItem.filename, "/", filename_separator))
 	}
 }
@@ -149,7 +149,7 @@ func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url string) bool {
 	if !found {
 		return false // 缓存未命中
 	}
-	if enableCacheLog {
+	if log_cache {
 		log.Println("命中缓存", url)
 	}
 	// 移动缓存项到列表前端
