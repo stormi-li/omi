@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,15 +66,13 @@ func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
 			return nil // 跳过超出容量的文件
 		}
 
-		// 生成 URL 路径并添加到缓存列表
-		i := strings.Index(path, "@")
-		url := path[i:]
+		filename := filepath.Base(path)
 		if log_cache {
-			log.Println("新增缓存", path)
+			log.Println("新增缓存", filename)
 		}
-		cacheItem := &CacheItem{filename: url, filepath: path, size: fileSize}
+		cacheItem := &CacheItem{filename: filename, filepath: path, size: fileSize}
 		elem := fileCache.itemList.PushFront(cacheItem)
-		fileCache.itemMap[url] = elem
+		fileCache.itemMap[filename] = elem
 		fileCache.curSize += fileSize
 		// 超出容量时，清理最旧的缓存文件
 		for fileCache.curSize > maxSize {
@@ -90,11 +89,15 @@ func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
 }
 
 // 将文件添加到磁盘缓存，超过容量时使用 LRU 策略清理
-func (fileCache *FileCache) AddFile(url string, data []byte) {
+func (fileCache *FileCache) UpdateCache(url *url.URL, data []byte) {
 	fileCache.lock.Lock()
 	defer fileCache.lock.Unlock()
-	url = strings.ReplaceAll(url, "/", filename_separator)
-	cachePath := filepath.Join(fileCache.cacheDir, url)
+	if len(data) == 0 {
+		return
+	}
+	filename := strings.ReplaceAll(url.String(), "/", "@")
+
+	cachePath := filepath.Join(fileCache.cacheDir, filename)
 
 	// 文件大小超过缓存最大容量时直接返回
 	fileSize := len(data)
@@ -111,14 +114,43 @@ func (fileCache *FileCache) AddFile(url string, data []byte) {
 	if err := os.WriteFile(cachePath, data, 0644); err != nil {
 		return
 	}
+
 	if log_cache {
-		log.Println("新增缓存", url)
+		log.Println("新增缓存", filename)
 	}
+
 	// 新建缓存项并添加到 LRU 列表
-	cacheItem := &CacheItem{filename: url, filepath: cachePath, size: fileSize}
+	cacheItem := &CacheItem{filename: filename, filepath: cachePath, size: fileSize}
 	elem := fileCache.itemList.PushFront(cacheItem)
-	fileCache.itemMap[url] = elem
+	fileCache.itemMap[filename] = elem
 	fileCache.curSize += fileSize
+}
+
+// 读取缓存，如果命中则返回 true
+func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url *url.URL) bool {
+	fileCache.lock.RLock()
+	defer fileCache.lock.RUnlock()
+	filename := strings.ReplaceAll(url.String(), "/", "@")
+	// 转换路径并检查是否存在于缓存中
+	elem, found := fileCache.itemMap[filename]
+	if !found {
+		return false // 缓存未命中
+	}
+	if log_cache {
+		log.Println("命中缓存", filename)
+	}
+	// 移动缓存项到列表前端
+	fileCache.itemList.MoveToFront(elem)
+
+	cacheItem := elem.Value.(*CacheItem)
+	data, err := os.ReadFile(cacheItem.filepath)
+	if err != nil {
+		return false
+	}
+
+	// 写入数据到响应
+	w.Write(data)
+	return true
 }
 
 // 移除最旧的缓存文件
@@ -134,34 +166,6 @@ func (fileCache *FileCache) removeOldest() {
 	delete(fileCache.itemMap, cacheItem.filename)
 	fileCache.itemList.Remove(oldest)
 	if log_cache {
-		log.Println("删除缓存", strings.ReplaceAll(cacheItem.filename, "/", filename_separator))
+		log.Println("删除缓存", cacheItem.filename)
 	}
-}
-
-// 读取缓存，如果命中则返回 true
-func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url string) bool {
-	fileCache.lock.RLock()
-	defer fileCache.lock.RUnlock()
-
-	// 转换路径并检查是否存在于缓存中
-	url = strings.ReplaceAll(url, "/", filename_separator)
-	elem, found := fileCache.itemMap[url]
-	if !found {
-		return false // 缓存未命中
-	}
-	if log_cache {
-		log.Println("命中缓存", url)
-	}
-	// 移动缓存项到列表前端
-	fileCache.itemList.MoveToFront(elem)
-
-	cacheItem := elem.Value.(*CacheItem)
-	data, err := os.ReadFile(cacheItem.filepath)
-	if err != nil {
-		return false
-	}
-
-	// 写入数据到响应
-	w.Write(data)
-	return true
 }

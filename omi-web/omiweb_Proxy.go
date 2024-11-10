@@ -35,6 +35,7 @@ func isWebSocketRequest(r *http.Request) bool {
 type captureResponseRoundTripper struct {
 	Transport http.RoundTripper
 	cache     *FileCache
+	url       *url.URL
 }
 
 func (c *captureResponseRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -54,7 +55,7 @@ func (c *captureResponseRoundTripper) RoundTrip(r *http.Request) (*http.Response
 	resp.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 	if c.cache != nil && r.Method == "GET" {
-		go c.cache.AddFile(r.URL.Path, bodyBytes)
+		go c.cache.UpdateCache(c.url, bodyBytes)
 	}
 
 	// 返回原始响应
@@ -66,10 +67,9 @@ func httpProxy(w http.ResponseWriter, r *http.Request, cache *FileCache) {
 	if isWebSocketRequest(r) {
 		return
 	}
-	if cache != nil && r.Method == "GET" && cache.ReadCache(w, r.URL.Path) {
+	if cache != nil && r.Method == "GET" && cache.ReadCache(w, r.URL) {
 		return
 	}
-
 	proxyURL := &url.URL{
 		Scheme: "http",
 		Host:   r.URL.Host,
@@ -77,7 +77,7 @@ func httpProxy(w http.ResponseWriter, r *http.Request, cache *FileCache) {
 
 	// 使用自定义的 RoundTripper 来捕获响应数据
 	proxy := httputil.NewSingleHostReverseProxy(proxyURL)
-	proxy.Transport = &captureResponseRoundTripper{Transport: http.DefaultTransport, cache: cache}
+	proxy.Transport = &captureResponseRoundTripper{Transport: http.DefaultTransport, cache: cache, url: r.URL}
 
 	// 转发请求并处理响应
 	proxy.ServeHTTP(w, r)
