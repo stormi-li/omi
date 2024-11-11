@@ -46,7 +46,6 @@ func main() {
 	webServer.Listen("localhost:8080")
 }
 ```
-执行 go run main.go，在unix系统中如果遇到访问权限问题使用sudo go run main.go。
 在浏览器搜索[http://localhost:8080](http://localhost:8080)，出现如下界面表示Web服务启动成功。
 ![6d920f60e3e59fa327fe11d413a374a9](picture/web1.png)
 ### 启动监控服务
