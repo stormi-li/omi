@@ -1,7 +1,6 @@
 package omiweb
 
 import (
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,7 +20,6 @@ func getSourceFilePath() string {
 	return dir
 }
 
-// copyFile 复制单个文件
 func copyFile(src, dst string) error {
 	if _, err := os.Stat(dst); err == nil {
 		// 如果目标文件已存在，不进行复制
@@ -31,21 +29,14 @@ func copyFile(src, dst string) error {
 		return err
 	}
 
-	sourceFile, err := os.Open(src)
-
+	// 读取源文件内容
+	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
 
-	destinationFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destinationFile.Close()
-
-	// 使用 io.Copy 复制文件内容
-	_, err = io.Copy(destinationFile, sourceFile)
+	// 写入目标文件
+	err = os.WriteFile(dst, data, 0644) // 使用 0644 权限创建目标文件
 	return err
 }
 
@@ -55,7 +46,6 @@ func copyDir(srcDir, dstDir string) error {
 		if err != nil {
 			return err
 		}
-
 		// 构建目标路径
 		relativePath, err := filepath.Rel(srcDir, path)
 		if err != nil {
