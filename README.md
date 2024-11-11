@@ -88,5 +88,5 @@ func main() {
 	proxyServer.StartHttpProxy("localhost:80")
 }
 ```
-在浏览器搜索[http://localhost](http://localhost)，出现如下界面说明反向代理启动成功
+在浏览器搜索[http://localhost](http://localhost)，出现如下界面表示反向代理启动成功
 ![2917a27ba6321abf19a9bd123984be5e](picture/web3.png)
