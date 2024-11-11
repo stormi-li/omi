@@ -17,7 +17,6 @@ func (c *Client) NewWebServer(serverName string, weight int) *WebServer {
 
 func (c *Client) GenerateTemplate() {
 	copyEmbeddedFiles()
-	// copyResource(getSourceFilePath() + source_path)
 }
 
 func (c *Client) NewProxyServer(serverName string) *ProxyServer {
