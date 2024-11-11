@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
 type Consumer struct {

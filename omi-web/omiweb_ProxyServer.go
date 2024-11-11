@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
 type ProxyServer struct {
-	router       *Router
+	router       *router
 	omiWebClient *omiclient.Client
 	serverName   string
-	cache        *FileCache
+	cache        *fileCache
 }
 
 func (proxyServer *ProxyServer) handleFunc(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +23,7 @@ func (proxyServer *ProxyServer) handleFunc(w http.ResponseWriter, r *http.Reques
 
 func (proxyServer *ProxyServer) SetCache(cacheDir string, maxSize int) {
 	var err error
-	proxyServer.cache, err = NewFileCache(cacheDir, maxSize)
+	proxyServer.cache, err = newFileCache(cacheDir, maxSize)
 	if err != nil {
 		panic(err)
 	}

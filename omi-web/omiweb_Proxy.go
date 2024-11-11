@@ -12,14 +12,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func pathRequestResolution(r *http.Request, router *Router) {
+func pathRequestResolution(r *http.Request, router *router) {
 	serverName := strings.Split(r.URL.Path, "/")[1]
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, "/"+serverName)
 	host := router.getAddress(serverName)
 	r.URL.Host = host
 }
 
-func domainNameResolution(r *http.Request, router *Router) {
+func domainNameResolution(r *http.Request, router *router) {
 	host := router.getAddress(strings.Split(r.Host, ":")[0])
 	r.URL.Host = host
 }
@@ -34,7 +34,7 @@ func isWebSocketRequest(r *http.Request) bool {
 // 自定义 RoundTripper 用于捕获响应数据
 type captureResponseRoundTripper struct {
 	Transport http.RoundTripper
-	cache     *FileCache
+	cache     *fileCache
 	url       *url.URL
 }
 
@@ -63,7 +63,7 @@ func (c *captureResponseRoundTripper) RoundTrip(r *http.Request) (*http.Response
 }
 
 // 代理请求并捕获响应数据
-func httpProxy(w http.ResponseWriter, r *http.Request, cache *FileCache) {
+func httpProxy(w http.ResponseWriter, r *http.Request, cache *fileCache) {
 	if isWebSocketRequest(r) {
 		return
 	}

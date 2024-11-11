@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
 type Producer struct {

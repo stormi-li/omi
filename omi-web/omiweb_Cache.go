@@ -12,13 +12,13 @@ import (
 	"sync"
 )
 
-type CacheItem struct {
+type cacheItem struct {
 	filename string // URL 路径
 	filepath string // 文件在磁盘上的路径
 	size     int    // 文件大小
 }
 
-type FileCache struct {
+type fileCache struct {
 	lock         sync.RWMutex
 	curSize      int
 	maxCacheSize int
@@ -28,8 +28,8 @@ type FileCache struct {
 }
 
 // 初始化文件缓存系统，读取现有缓存目录内容
-func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
-	fileCache := &FileCache{
+func newFileCache(cacheDir string, maxSize int) (*fileCache, error) {
+	fileCache := &fileCache{
 		itemMap:  make(map[string]*list.Element),
 		itemList: list.New(),
 	}
@@ -70,7 +70,7 @@ func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
 		if log_cache {
 			log.Println("新增缓存", filename)
 		}
-		cacheItem := &CacheItem{filename: filename, filepath: path, size: fileSize}
+		cacheItem := &cacheItem{filename: filename, filepath: path, size: fileSize}
 		elem := fileCache.itemList.PushFront(cacheItem)
 		fileCache.itemMap[filename] = elem
 		fileCache.curSize += fileSize
@@ -89,7 +89,7 @@ func NewFileCache(cacheDir string, maxSize int) (*FileCache, error) {
 }
 
 // 将文件添加到磁盘缓存，超过容量时使用 LRU 策略清理
-func (fileCache *FileCache) UpdateCache(url *url.URL, data []byte) {
+func (fileCache *fileCache) UpdateCache(url *url.URL, data []byte) {
 	fileCache.lock.Lock()
 	defer fileCache.lock.Unlock()
 	if len(data) == 0 {
@@ -120,14 +120,14 @@ func (fileCache *FileCache) UpdateCache(url *url.URL, data []byte) {
 	}
 
 	// 新建缓存项并添加到 LRU 列表
-	cacheItem := &CacheItem{filename: filename, filepath: cachePath, size: fileSize}
+	cacheItem := &cacheItem{filename: filename, filepath: cachePath, size: fileSize}
 	elem := fileCache.itemList.PushFront(cacheItem)
 	fileCache.itemMap[filename] = elem
 	fileCache.curSize += fileSize
 }
 
 // 读取缓存，如果命中则返回 true
-func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url *url.URL) bool {
+func (fileCache *fileCache) ReadCache(w http.ResponseWriter, url *url.URL) bool {
 	fileCache.lock.RLock()
 	defer fileCache.lock.RUnlock()
 	filename := strings.ReplaceAll(url.String(), "/", "@")
@@ -142,7 +142,7 @@ func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url *url.URL) bool 
 	// 移动缓存项到列表前端
 	fileCache.itemList.MoveToFront(elem)
 
-	cacheItem := elem.Value.(*CacheItem)
+	cacheItem := elem.Value.(*cacheItem)
 	data, err := os.ReadFile(cacheItem.filepath)
 	if err != nil {
 		return false
@@ -154,13 +154,13 @@ func (fileCache *FileCache) ReadCache(w http.ResponseWriter, url *url.URL) bool 
 }
 
 // 移除最旧的缓存文件
-func (fileCache *FileCache) removeOldest() {
+func (fileCache *fileCache) removeOldest() {
 	oldest := fileCache.itemList.Back()
 	if oldest == nil {
 		return
 	}
 
-	cacheItem := oldest.Value.(*CacheItem)
+	cacheItem := oldest.Value.(*cacheItem)
 	fileCache.curSize -= cacheItem.size
 	os.Remove(cacheItem.filepath) // 删除磁盘上的缓存文件
 	delete(fileCache.itemMap, cacheItem.filename)

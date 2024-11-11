@@ -6,16 +6,16 @@ import (
 	"sync"
 	"time"
 
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
-type Router struct {
+type router struct {
 	searcher   *omiclient.Searcher
 	addressMap map[string][]string
 	mutex      sync.Mutex
 }
 
-func (router *Router) refresh() {
+func (router *router) refresh() {
 	nodeMap := router.searcher.SearchAllServers()
 	addrMap := map[string][]string{}
 	for name, addrs := range nodeMap {
@@ -31,8 +31,8 @@ func (router *Router) refresh() {
 	router.mutex.Unlock()
 }
 
-func newRouter(searcher *omiclient.Searcher) *Router {
-	router := Router{
+func newRouter(searcher *omiclient.Searcher) *router {
+	router := router{
 		searcher:   searcher,
 		addressMap: map[string][]string{},
 		mutex:      sync.Mutex{},
@@ -46,7 +46,7 @@ func newRouter(searcher *omiclient.Searcher) *Router {
 	return &router
 }
 
-func (router *Router) getAddress(serverName string) string {
+func (router *router) getAddress(serverName string) string {
 	router.mutex.Lock()
 	defer router.mutex.Unlock()
 	if len(router.addressMap[serverName]) == 0 {
@@ -55,6 +55,6 @@ func (router *Router) getAddress(serverName string) string {
 	return router.addressMap[serverName][rand.IntN(len(router.addressMap[serverName]))]
 }
 
-func (router *Router) Has(serverName string) bool {
+func (router *router) Has(serverName string) bool {
 	return len(router.addressMap[serverName]) != 0
 }

@@ -36,7 +36,7 @@ var redisAddr = "118.25.196.166:3934"
 var password = "12982397StrongPassw0rd"
 
 func main() {
-	omi.NewServerClient(&redis.Options{Addr: redisAddr, Password: password}).NewRegister("helloworldwebsocket", 1).Register("118.25.196.166:8082")
+	omi.NewServerManager(&redis.Options{Addr: redisAddr, Password: password}).NewRegister("helloworldwebsocket", 1).Register("118.25.196.166:8082")
 
 	http.HandleFunc("/request", wsHandler) // 将 /request 路径映射到 wsHandler
 	fmt.Println("WebSocket server listening on :8082")

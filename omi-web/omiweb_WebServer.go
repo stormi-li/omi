@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
 type WebServer struct {
-	router          *Router
+	router          *router
 	redisClient     *redis.Client
 	omiWebClient    *omiclient.Client
 	omiServerClient *omiclient.Client
@@ -20,7 +20,7 @@ type WebServer struct {
 	weight          int
 	embeddedSource  embed.FS
 	embedModel      bool
-	cache           *FileCache
+	cache           *fileCache
 }
 
 func newWebServer(redisClient *redis.Client, omiWebClient, omiServerClient *omiclient.Client, serverName string, weight int) *WebServer {
@@ -41,7 +41,7 @@ func (webServer *WebServer) EmbedSource(embeddedSource embed.FS) {
 
 func (webServer *WebServer) SetCache(cacheDir string, maxSize int) {
 	var err error
-	webServer.cache, err = NewFileCache(cacheDir, maxSize)
+	webServer.cache, err = newFileCache(cacheDir, maxSize)
 	if err != nil {
 		panic(err)
 	}

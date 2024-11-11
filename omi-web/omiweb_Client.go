@@ -2,7 +2,7 @@ package omiweb
 
 import (
 	"github.com/go-redis/redis/v8"
-	omiclient "github.com/stormi-li/omi/omi-client"
+	omiclient "github.com/stormi-li/omi/omi-manager"
 )
 
 type Client struct {

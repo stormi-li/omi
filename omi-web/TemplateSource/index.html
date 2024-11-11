@@ -5,16 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Do one thing, do it well</title>
+    <style>
+        /* 设置全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            /* 将内容移到顶部 */
+            align-items: center;
+            min-height: 100vh;
+            background-color: #eaf1fd;
+            padding-top: 30vh;
+            /* 添加顶部填充，控制 logo 位置 */
+        }
+
+        /* Logo 样式 */
+        .logo {
+            font-size: 120px;
+            font-weight: bold;
+            color: #4285f4;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>welcome use omi !</h1>
-    <div id="app">
-        <p>
-            使用http代理: /http_proxy/your_request <br>
-            使用websocket代理: /websocket_proxy/your_request
-        </p>
-    </div>
+    <!-- Logo -->
+    <div class="logo">omi</div>
+
 </body>
 
 </html>
