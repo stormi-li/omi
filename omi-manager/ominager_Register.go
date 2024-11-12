@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -31,4 +32,9 @@ func (register *Register) Register(address string) {
 		}
 	}()
 	log.Println("register server for", register.serverName+"["+register.address+"]", "is starting")
+}
+
+func (register *Register) RegisterAndListen(address string, handler func(port string)) {
+	register.Register(address)
+	handler(":" + strings.Split(address, ":")[1])
 }

@@ -92,14 +92,16 @@ import (
 )
 
 func main() {
-	serverManager := omi.NewServerManager(&redis.Options{Addr: "localhost:6379"})
+	serverManager := omi.NewServerManager(&redis.Options{Addr: redisAddr, Password: password})
 	register := serverManager.NewRegister("hello_server", 1)
-	register.Register("localhost:8081")
 
 	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Hello", r.URL.Query().Get("name"), ", welcome to use omi")
 	})
-	http.ListenAndServe(":8081", nil)
+
+	register.RegisterAndListen("118.25.196.166:8081", func(port string) {
+		http.ListenAndServe(port, nil)
+	})
 }
 ```
 #### 在浏览器搜索[http://localhost:7677](http://localhost:7677)，出现如下界面表示 hello_server 服务已经完成了注册。
