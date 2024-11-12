@@ -99,7 +99,7 @@ func main() {
 		fmt.Fprintln(w, "Hello", r.URL.Query().Get("name"), ", welcome to use omi")
 	})
 
-	register.RegisterAndListen("118.25.196.166:8081", func(port string) {
+	register.RegisterAndListen("localhost:8081", func(port string) {
 		http.ListenAndServe(port, nil)
 	})
 }
