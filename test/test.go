@@ -35,8 +35,8 @@ func server() {
 		fmt.Fprintln(w, "Hello", r.URL.Query().Get("name"), ", welcome to use omi")
 	})
 	http.ListenAndServe(":8081", nil)
-
 }
+
 func web() {
 	web := omi.NewWebClient(&redis.Options{Addr: redisAddr, Password: password})
 	web.GenerateTemplate()
