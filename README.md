@@ -26,7 +26,7 @@ Email：2785782829@qq.com
 ## 快速开始
 ### 安装
 ```shell 
-go get github.com/stormi-li/omi
+go get github.com/stormi-li/omi-v1
 ```
 ### 启动web服务
 ```go
@@ -34,7 +34,7 @@ package main
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	"github.com/stormi-li/omi-v1"
 )
 
 func main() {
@@ -52,7 +52,7 @@ package main
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	"github.com/stormi-li/omi-v1"
 )
 
 func main() {
@@ -68,7 +68,7 @@ package main
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	"github.com/stormi-li/omi-v1"
 )
 
 func main() {
@@ -88,7 +88,7 @@ import (
 	"net/http"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/stormi-li/omi"
+	"github.com/stormi-li/omi-v1"
 )
 
 func main() {
