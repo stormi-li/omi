@@ -21,7 +21,7 @@ Email：2785782829@qq.com
 * 反向代理和 Web 服务均支持负载均衡，支持静态资源缓存。
 * 所有方案基于 Redis 实现，没有引入新的技术栈，没有引入新的中间件，不会增加系统复杂度。
 ## 架构图
-![alt text](image.png)
+![alt text](media/image.png)
 在该架构中，所有的节点均需要实时向配置管理服务器上传本节点状态，因此配置管理服务器拥有所有节点信息，任何节点都可以向配置管理服务器询问目标服务地址，因此任何节点在本地都无需存储其他节点的配置信息，整个系统的耦合度大大降低，大大增加了系统的健壮性和可扩展性。
 ## 快速开始
 ### 安装
@@ -45,7 +45,7 @@ func main() {
 }
 ```
 在浏览器搜索[http://localhost:8080](http://localhost:8080)，出现如下界面表示 Web 服务启动成功。
-![alt text](image-1.png)
+![alt text](media/image-1.png)
 ### 启动监控服务
 ```go
 package main
@@ -61,7 +61,7 @@ func main() {
 }
 ```
 #### 在浏览器搜索[http://localhost:7677](http://localhost:7677)，出现如下界面表示上面启动的web服务已经完成了注册。
-![alt text](image-2.png)
+![alt text](media/image-2.png)
 ### 启动反向代理服务
 ```go
 package main
@@ -78,7 +78,7 @@ func main() {
 }
 ```
 #### 在浏览器搜索[http://localhost](http://localhost)，出现如下界面说明反向代理启动成功。
-![alt text](image-3.png)
+![alt text](media/image-3.png)
 ### 启动微服务
 ```go
 package main
@@ -105,7 +105,7 @@ func main() {
 }
 ```
 #### 在浏览器搜索[http://localhost:7677](http://localhost:7677)，出现如下界面表示 hello_server 服务已经完成了注册。
-![alt text](image-4.png)
+![alt text](media/image-4.png)
 ### 使用微服务
 #### 在搜索框输入：hello_server/hello?name=lili，出现如下界面表示 Web 端成功连接到微服务。
-![alt text](image-5.png)
+![alt text](media/image-5.png)
