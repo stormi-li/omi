@@ -15,9 +15,9 @@ Email：2785782829@qq.com
 该方案将配置信息存放在配置管理服务器中，反向代理服务通过连接配置管理服务器来更新配置信息，
 这种分布式的配置管理方案能够显著降低系统耦合度，增加系统灵活性、健壮性和可扩展性。
 ## 贡献
-* 支持反向代理(http, https, websocket)，支持将反向代理接入服务注册与发现系统。
+* 支持反向代理(http, https, websocket)，支持将反向代理作为微服务接入服务注册与发现系统。
 * 支持服务注册与发现，支持心跳检测，支持分布式配置管理。
-* 支持构建 Web 服务，支持静态资源打包。
+* 支持构建 Web 服务，支持静态资源打包，支持将 Web 服务作为微服务接入服务注册与发现系统。
 * 支持负载均衡，支持静态资源缓存。
 * 所有方案基于 Redis 实现，没有引入新的技术栈，没有引入新的中间件，不会增加系统复杂度。
 ## 架构图
@@ -44,7 +44,7 @@ func main() {
 	webServer.Listen("localhost:8080")
 }
 ```
-在浏览器搜索[http://localhost:8080](http://localhost:8080)，出现如下界面表示Web服务启动成功。
+在浏览器搜索[http://localhost:8080](http://localhost:8080)，出现如下界面表示 Web 服务启动成功。
 ![alt text](image-1.png)
 ### 启动监控服务
 ```go
@@ -99,8 +99,8 @@ func main() {
 	http.ListenAndServe(":8081", nil)
 }
 ```
-#### 在浏览器搜索[http://localhost:7677](http://localhost:7677)，出现如下界面表示hello_server服务已经完成了注册。
+#### 在浏览器搜索[http://localhost:7677](http://localhost:7677)，出现如下界面表示 hello_server 服务已经完成了注册。
 ![alt text](image-4.png)
 ### 使用微服务
-#### 在搜索框输入：hello_server/hello?name=lili，出现如下界面表示web端成功连接到微服务。
+#### 在搜索框输入：hello_server/hello?name=lili，出现如下界面表示 Web 端成功连接到微服务。
 ![alt text](image-5.png)
