@@ -109,3 +109,22 @@ func main() {
 ### 使用微服务
 #### 在搜索框输入：hello_server/hello?name=lili，出现如下界面表示 Web 端成功连接到微服务。
 ![alt text](media/image-5.png)
+### 搜索节点
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/stormi-li/omi-v1"
+)
+
+func main() {
+	searcher := omi.NewServerManager(&redis.Options{Addr: "localhost:6379"}).NewSearcher()
+	searcher.SearchAndListen("hello_server", func(address string, data map[string]string) {
+		fmt.Println(address)
+	})
+}
+```
+搜索功能会根据名称搜索目标节点信息，并监听目标节点状态，如果目标节点心跳停止，会重新搜索服务，重新执行连接操作。
